@@ -92,4 +92,5 @@ const PITCHING = [
   { date:"2026-06-15", opponent:"10U All Stars Carter/Richa",ip:1.0,gs:0, bf:7,  pitches:35,  w:0, l:0, sv:0, h_allowed:1, r_allowed:3,  er:2, bb_p:3, k:3,  hbp_p:0, lob:1, bk:0, pik:0, cs_p:0, sb_p:4 },
   { date:"2026-06-19", opponent:"TBD-06/19/26",             ip:4.0, gs:1, bf:13, pitches:58,  w:0, l:0, sv:0, h_allowed:1, r_allowed:0,  er:0, bb_p:1, k:9,  hbp_p:0, lob:1, bk:0, pik:0, cs_p:1, sb_p:1 },
   { date:"2026-06-21", opponent:"MYS 2026 10U Allstars",    ip:4.0, gs:1, bf:13, pitches:52,  w:0, l:0, sv:0, h_allowed:1, r_allowed:0,  er:0, bb_p:0, k:10, hbp_p:0, lob:1, bk:0, pik:0, cs_p:0, sb_p:8 },
+  { date:"2026-06-25", opponent:"Kuna Krossfire 10U Select", ip:5.0, gs:1, bf:20, pitches:91,  w:0, l:0, sv:0, h_allowed:3, r_allowed:2,  er:2, bb_p:3, k:14, hbp_p:0, lob:3, bk:0, pik:0, cs_p:1, sb_p:4 },
 ];
