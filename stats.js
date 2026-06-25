@@ -58,6 +58,7 @@ const GAMES = [
   { date: "2026-06-20", opponent: "10U All Stars Carter/Richa",pa:3, ab:3, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:0, r:2, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:4, cs:0 },
   { date: "2026-06-21", opponent: "Nampa Dice 10U",            pa:3, ab:3, h:3, singles:3, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:3, cs:0 },
   { date: "2026-06-21", opponent: "MYS 2026 10U Allstars",     pa:2, ab:1, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:4, cs:1 },
+  { date: "2026-06-25", opponent: "East Boise Select 10U",     pa:3, ab:3, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:1, cs:0 },
 ];
 
 // ip stored as GameChanger decimal (e.g. 5.2 = 5 innings + 2 outs)
