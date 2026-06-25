@@ -855,9 +855,22 @@ document.addEventListener('DOMContentLoaded', () => {
              example:'💡 Below 1.0 per appearance is excellent. It means she almost always keeps the game close.' },
   };
 
-  function openPopup(key, value) {
-    const info = STAT_INFO[key];
+  // Overrides for stats whose abbreviation exists in both batting AND pitching
+  const PITCH_NAME_OVERRIDES = {
+    'H':    { name:'Hits Allowed',     plain:'The number of hits the opposing batters got against Zoe while she was pitching. Fewer hits allowed means batters aren\'t making solid contact.',       example:'💡 30 hits allowed in 63+ innings is very low — less than half a hit per inning.' },
+    'BB':   { name:'Walks Issued',     plain:'The number of batters Zoe walked by throwing four balls as a pitcher. Walks are free passes — the fewer, the better.',                              example:'💡 Command and control is the ability to throw strikes. Fewer walks = better control.' },
+    'R':    { name:'Runs Allowed',     plain:'Total runs that scored while Zoe was pitching, including runs due to errors by her teammates.',                                                       example:'💡 Runs allowed differs from earned runs — defense behind a pitcher matters a lot.' },
+    'K%':   { name:'Strikeout Rate (Pitching)', plain:'Out of every batter she faced as a pitcher, what percentage did she strike out? Higher is much better — strikeouts are the most dominant outcome.', example:'💡 Above 30% K rate is elite strikeout ability at any level.' },
+    'BB%':  { name:'Walk Rate (Pitching)',      plain:'Out of every batter she faced as a pitcher, what percentage did she walk? Lower is much better — walks are free baserunners.',             example:'💡 Below 10% BB rate shows strong command and strike-throwing ability.' },
+    'K:BB': { name:'K:BB Ratio (Pitching)',     plain:'As a pitcher you want this HIGH. Compares strikeouts to walks. A high ratio means she dominates AND has good control.',                   example:'💡 Above 2.0 is solid. Above 3.0 is excellent. Elite pitchers are 4.0 or higher.' },
+  };
+
+  function openPopup(key, value, pitchContext) {
+    let info = STAT_INFO[key];
     if (!info) return;
+    if (pitchContext && PITCH_NAME_OVERRIDES[key]) {
+      info = { ...info, ...PITCH_NAME_OVERRIDES[key], color: 'teal' };
+    }
     const isTeal = info.color === 'teal';
     const overlay = document.getElementById('popup-overlay');
     document.getElementById('popup-abbr').textContent = key;
@@ -880,6 +893,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('popup-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closePopup(); });
   document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
 
+  function isPitchCard(el) {
+    return !!el.closest('#tab-pitching');
+  }
+
   // Wire up stat cards
   document.querySelectorAll('.stat-card').forEach(card => {
     const label = card.querySelector('.stat-card-label')?.textContent?.trim();
@@ -888,8 +905,8 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('role','button');
       card.setAttribute('tabindex','0');
       card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
+      card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
     }
   });
 
@@ -901,12 +918,12 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('role','button');
       card.setAttribute('tabindex','0');
       card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
+      card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
     }
   });
 
-  // Wire up gauge cards
+  // Wire up gauge cards (always pitching)
   document.querySelectorAll('.gauge-card').forEach(card => {
     const label = card.querySelector('.gauge-label')?.textContent?.trim();
     const value = card.querySelector('.gauge-big')?.textContent?.trim();
@@ -914,18 +931,26 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('role','button');
       card.setAttribute('tabindex','0');
       card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
+      card.addEventListener('click', () => openPopup(label, value, true));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, true); });
     }
   });
 
-  // Wire up table column headers
-  document.querySelectorAll('thead th').forEach(th => {
+  // Wire up table column headers — batting table vs pitching table
+  document.querySelectorAll('#bat-log thead th').forEach(th => {
     const key = th.textContent.trim();
     if (STAT_INFO[key]) {
-      th.setAttribute('data-key', key);
+      th.style.cursor = 'pointer';
       th.setAttribute('title', STAT_INFO[key].name);
-      th.addEventListener('click', () => openPopup(key, null));
+      th.addEventListener('click', () => openPopup(key, null, false));
+    }
+  });
+  document.querySelectorAll('#pitch-log thead th').forEach(th => {
+    const key = th.textContent.trim();
+    if (STAT_INFO[key]) {
+      th.style.cursor = 'pointer';
+      th.setAttribute('title', PITCH_NAME_OVERRIDES[key]?.name || STAT_INFO[key].name);
+      th.addEventListener('click', () => openPopup(key, null, true));
     }
   });
 
