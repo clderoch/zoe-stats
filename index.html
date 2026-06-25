@@ -36,8 +36,7 @@
 
     /* HERO BAR */
     .hero-stats { background:var(--gold); padding:1rem 2rem; display:flex; overflow-x:auto; }
-    .hero-stat { flex:1; min-width:80px; text-align:center; padding:0 .75rem; border-right:2px solid var(--gold2); cursor:pointer; transition:background .15s; }
-    .hero-stat:hover { background:var(--gold2); }
+    .hero-stat { flex:1; min-width:80px; text-align:center; padding:0 .75rem; border-right:2px solid var(--gold2); }
     .hero-stat:last-child { border-right:none; }
     .hero-stat-value { font-family:'Barlow Condensed',sans-serif; font-size:2rem; font-weight:900; color:var(--navy); line-height:1; }
     .hero-stat-label { font-family:'Barlow Condensed',sans-serif; font-size:.65rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--navy2); margin-top:.1rem; }
@@ -391,17 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const hBar = document.getElementById('hero-stats');
   heroItems.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'hero-stat';
-    div.innerHTML = `<div class="hero-stat-value">${item.value}</div><div class="hero-stat-label">${item.label}</div>`;
-    div.setAttribute('role', 'button');
-    div.setAttribute('tabindex', '0');
-    div.setAttribute('aria-label', 'Learn about ' + item.label);
-    if (STAT_INFO[item.label]) {
-      div.addEventListener('click', () => openPopup(item.label, item.value));
-      div.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(item.label, item.value); });
-    }
-    hBar.appendChild(div);
+    hBar.innerHTML += `<div class="hero-stat"><div class="hero-stat-value">${item.value}</div><div class="hero-stat-label">${item.label}</div></div>`;
   });
 
   // TABS
