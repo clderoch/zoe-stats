@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoe Derocher · 2026 Season Stats</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="stats.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #0d1b2a;
+      --navy2:  #162032;
+      --gold:   #f5c842;
+      --gold2:  #e0a800;
+      --red:    #d94f3d;
+      --teal:   #38b2ac;
+      --slate:  #8a9bb0;
+      --muted:  #3a4a5c;
+      --white:  #f0f4f8;
+      --card:   #162032;
+      --border: #1e2f42;
+    }
+    html { scroll-behavior: smooth; }
+    body { background:var(--navy); color:var(--white); font-family:'Inter',sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
+
+    /* HEADER */
+    header { background:var(--navy2); border-bottom:3px solid var(--gold); padding:0 2rem; display:flex; align-items:stretch; }
+    .header-accent { background:var(--gold); width:8px; flex-shrink:0; margin:0 1.5rem 0 0; }
+    .header-info { padding:1.5rem 0; flex:1; }
+    .player-name { font-family:'Barlow Condensed',sans-serif; font-size:3rem; font-weight:900; line-height:1; letter-spacing:.02em; text-transform:uppercase; }
+    .player-name span { color:var(--gold); }
+    .player-meta { font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--slate); margin-top:.25rem; }
+    .header-number { font-family:'Barlow Condensed',sans-serif; font-size:6rem; font-weight:900; color:var(--border); line-height:1; padding:.5rem 0; align-self:center; user-select:none; }
+
+    /* HERO BAR */
+    .hero-stats { background:var(--gold); padding:1rem 2rem; display:flex; overflow-x:auto; }
+    .hero-stat { flex:1; min-width:80px; text-align:center; padding:0 .75rem; border-right:2px solid var(--gold2); }
+    .hero-stat:last-child { border-right:none; }
+    .hero-stat-value { font-family:'Barlow Condensed',sans-serif; font-size:2rem; font-weight:900; color:var(--navy); line-height:1; }
+    .hero-stat-label { font-family:'Barlow Condensed',sans-serif; font-size:.65rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--navy2); margin-top:.1rem; }
+
+    /* TABS */
+    .tab-bar { background:var(--navy2); border-bottom:1px solid var(--border); display:flex; padding:0 2rem; gap:0; }
+    .tab-btn { font-family:'Barlow Condensed',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--slate); padding:.85rem 1.5rem; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px; transition:color .15s,border-color .15s; }
+    .tab-btn:hover { color:var(--white); }
+    .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* MAIN */
+    main { max-width:1200px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .section-label { font-family:'Barlow Condensed',sans-serif; font-size:.75rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:.5rem; }
+    .section-label.teal { color:var(--teal); }
+    .section-title { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:700; color:var(--white); margin-bottom:1.25rem; text-transform:uppercase; letter-spacing:.04em; }
+    .divider { border:none; border-top:1px solid var(--border); margin:2rem 0; }
+
+    /* STAT CARDS */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:2.5rem; }
+    .stat-card { background:var(--card); padding:1.1rem 1rem; text-align:center; transition:background .15s; }
+    .stat-card:hover { background:var(--muted); }
+    .stat-card-value { font-family:'Barlow Condensed',sans-serif; font-size:1.9rem; font-weight:900; color:var(--white); line-height:1; }
+    .stat-card-value.gold { color:var(--gold); }
+    .stat-card-value.teal { color:var(--teal); }
+    .stat-card-value.red  { color:var(--red); }
+    .stat-card-label { font-size:.68rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); margin-top:.25rem; }
+    .stat-card-desc  { font-size:.62rem; color:var(--muted); margin-top:.1rem; }
+
+    /* ADVANCED CARDS */
+    .advanced-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:1rem; margin-bottom:2.5rem; }
+    .adv-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.1rem; position:relative; overflow:hidden; }
+    .adv-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:var(--gold); }
+    .adv-card.teal::before { background:var(--teal); }
+    .adv-card.red::before  { background:var(--red); }
+    .adv-card-value { font-family:'Barlow Condensed',sans-serif; font-size:2.2rem; font-weight:900; color:var(--white); line-height:1; }
+    .adv-card-label { font-family:'Barlow Condensed',sans-serif; font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--gold); margin-top:.4rem; }
+    .adv-card.teal .adv-card-label { color:var(--teal); }
+    .adv-card.red  .adv-card-label { color:var(--red); }
+    .adv-card-desc { font-size:.7rem; color:var(--slate); margin-top:.35rem; line-height:1.4; }
+
+    /* CHARTS */
+    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2.5rem; }
+    @media(max-width:700px){ .chart-grid{grid-template-columns:1fr;} }
+    .chart-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.25rem; }
+    .chart-title { font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); margin-bottom:1rem; }
+    .chart-card.full { grid-column:1/-1; }
+
+    /* HIT TYPE BAR */
+    .hit-type-bar { display:flex; height:28px; border-radius:4px; overflow:hidden; margin:.5rem 0 1rem; }
+    .htb-seg { display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:.75rem; font-weight:700; color:var(--navy); }
+    .sparkline-row { display:flex; flex-direction:column; gap:.5rem; margin-bottom:2rem; }
+    .spark-item { display:grid; grid-template-columns:60px 1fr 48px; gap:.5rem; align-items:center; }
+    .spark-label { font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--slate); text-align:right; }
+    .spark-bar-wrap { background:var(--border); height:14px; border-radius:2px; overflow:hidden; }
+    .spark-bar { height:100%; border-radius:2px; background:var(--gold); }
+    .spark-bar.teal { background:var(--teal); }
+    .spark-bar.red  { background:var(--red); }
+    .spark-value { font-family:'Barlow Condensed',sans-serif; font-size:.82rem; font-weight:700; color:var(--white); text-align:right; }
+
+    /* TABLES */
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:8px; overflow-x:auto; margin-bottom:2.5rem; }
+    table { width:100%; border-collapse:collapse; font-size:.78rem; min-width:680px; }
+    thead tr { background:var(--navy); border-bottom:2px solid var(--gold); }
+    thead.teal-head tr { border-bottom-color:var(--teal); }
+    thead th { font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); padding:.6rem .7rem; text-align:right; white-space:nowrap; }
+    thead th:first-child, thead th:nth-child(2) { text-align:left; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background .1s; }
+    tbody tr:hover { background:var(--muted); }
+    tbody tr:last-child { border-bottom:none; }
+    tbody td { padding:.48rem .7rem; text-align:right; color:var(--white); white-space:nowrap; }
+    tbody td:first-child, tbody td:nth-child(2) { text-align:left; color:var(--slate); font-size:.72rem; }
+    tbody td:nth-child(2) { color:var(--white); font-weight:500; }
+    .td-gold { color:var(--gold)!important; font-weight:700; }
+    .td-teal { color:var(--teal)!important; font-weight:700; }
+    .td-red  { color:var(--red)!important; }
+    tfoot tr { border-top:2px solid var(--gold); background:var(--navy); }
+    tfoot.teal-foot tr { border-top-color:var(--teal); }
+    tfoot td { padding:.55rem .7rem; text-align:right; font-weight:700; color:var(--gold); font-family:'Barlow Condensed',sans-serif; font-size:.83rem; }
+    tfoot.teal-foot td { color:var(--teal); }
+    tfoot td:first-child, tfoot td:nth-child(2) { text-align:left; color:var(--slate); }
+
+    /* K9 GAUGE */
+    .gauge-row { display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .gauge-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.25rem 1.5rem; flex:1; min-width:160px; text-align:center; }
+    .gauge-big { font-family:'Barlow Condensed',sans-serif; font-size:3rem; font-weight:900; color:var(--teal); line-height:1; }
+    .gauge-label { font-family:'Barlow Condensed',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--slate); margin-top:.3rem; }
+    .gauge-sub { font-size:.68rem; color:var(--muted); margin-top:.2rem; }
+
+    footer { text-align:center; padding:1.5rem; color:var(--muted); font-size:.72rem; border-top:1px solid var(--border); }
+    @media(max-width:600px){
+      .player-name{font-size:2rem;}
+      .hero-stat{min-width:65px; padding:0 .4rem;}
+      .hero-stat-value{font-size:1.5rem;}
+      main{padding:1.25rem 1rem 3rem;}
+      .header-number{font-size:4rem;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-accent"></div>
+  <div class="header-info">
+    <div class="player-name">Zoe <span>Derocher</span></div>
+    <div class="player-meta">No. 12 &nbsp;·&nbsp; <span id="team-label"></span> &nbsp;·&nbsp; <span id="season-label"></span> Season</div>
+  </div>
+  <div class="header-number">#12</div>
+</header>
+
+<div class="hero-stats" id="hero-stats"></div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="batting">⚡ Batting</button>
+  <button class="tab-btn" data-tab="pitching">🥎 Pitching</button>
+</div>
+
+<main>
+
+  <!-- ═══════════════ BATTING TAB ═══════════════ -->
+  <div class="tab-pane active" id="tab-batting">
+    <div class="section-label">Batting</div>
+    <div class="section-title">Season Totals</div>
+    <div class="stat-grid" id="batting-grid"></div>
+
+    <div class="section-label">Advanced</div>
+    <div class="section-title">Sabermetrics</div>
+    <div class="advanced-grid" id="adv-grid"></div>
+
+    <hr class="divider">
+    <div class="section-label">Hitting Profile</div>
+    <div class="section-title">Hit Type Breakdown</div>
+    <div class="hit-type-bar" id="hit-bar"></div>
+    <div class="sparkline-row" id="hit-sparks"></div>
+
+    <hr class="divider">
+    <div class="section-label">Trends</div>
+    <div class="section-title">Season Progression</div>
+    <div class="chart-grid">
+      <div class="chart-card"><div class="chart-title">Cumulative AVG / OBP / OPS</div><canvas id="avgChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">RBI & Runs per Game</div><canvas id="rbiChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Stolen Base Accumulation</div><canvas id="sbChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">K% vs BB% (rolling 5 games)</div><canvas id="kbbChart" height="220"></canvas></div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-label">Game Log</div>
+    <div class="section-title">All Games — Batting</div>
+    <div class="table-wrap">
+      <table id="bat-log">
+        <thead><tr>
+          <th>Date</th><th>Opponent</th>
+          <th>PA</th><th>AB</th><th>H</th><th>1B</th><th>2B</th><th>3B</th><th>HR</th>
+          <th>RBI</th><th>R</th><th>BB</th><th>SO</th>
+          <th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>SB</th>
+        </tr></thead>
+        <tbody id="bat-tbody"></tbody>
+        <tfoot id="bat-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PITCHING TAB ═══════════════ -->
+  <div class="tab-pane" id="tab-pitching">
+    <div class="section-label teal">Pitching</div>
+    <div class="section-title">Season Totals</div>
+    <div class="stat-grid" id="pitch-grid"></div>
+
+    <div class="section-label teal">Advanced</div>
+    <div class="section-title">Pitching Metrics</div>
+    <div class="gauge-row" id="gauge-row"></div>
+    <div class="advanced-grid" id="padv-grid"></div>
+
+    <hr class="divider">
+    <div class="section-label teal">Trends</div>
+    <div class="section-title">Pitching Progression</div>
+    <div class="chart-grid">
+      <div class="chart-card"><div class="chart-title">Cumulative ERA & WHIP</div><canvas id="eraChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Strikeouts per Outing</div><canvas id="kChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Pitches per Inning</div><canvas id="pitchEffChart" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Cumulative K9</div><canvas id="k9Chart" height="220"></canvas></div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-label teal">Game Log</div>
+    <div class="section-title">All Appearances — Pitching</div>
+    <div class="table-wrap">
+      <table id="pitch-log">
+        <thead class="teal-head"><tr>
+          <th>Date</th><th>Opponent</th>
+          <th>IP</th><th>GS</th><th>BF</th><th>P</th>
+          <th>W</th><th>L</th><th>SV</th>
+          <th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th>
+          <th>ERA</th><th>WHIP</th><th>K9</th><th>P/IP</th>
+        </tr></thead>
+        <tbody id="pitch-tbody"></tbody>
+        <tfoot class="teal-foot" id="pitch-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>Zoe Derocher · 2026 Fastpitch Season &nbsp;·&nbsp; Data sourced from GameChanger &nbsp;·&nbsp; Built with ❤️ by Dad</footer>
+
+<script>
+// ─── HELPERS ────────────────────────────────────────────────
+function ipToD(ip) {
+  const w = Math.floor(ip), o = Math.round((ip - w) * 10);
+  return w + o / 3;
+}
+function dToIP(d) {
+  const w = Math.floor(d), o = Math.round((d - w) * 3);
+  return o === 0 ? `${w}.0` : `${w}.${o}`;
+}
+function fmt3(n) {
+  if (n===null||isNaN(n)) return '—';
+  const s = n.toFixed(3);
+  return s.startsWith('0') ? s.slice(1) : s;
+}
+function fmt2(n) { return (n===null||isNaN(n)) ? '—' : n.toFixed(2); }
+function fmtPct(n) { return (n===null||isNaN(n)) ? '—' : (n*100).toFixed(1)+'%'; }
+
+// ─── BATTING COMPUTE ────────────────────────────────────────
+function calcBat(games) {
+  let pa=0,ab=0,h=0,s1=0,d=0,t=0,hr=0,rbi=0,r=0,bb=0,so=0,hbp=0,sac=0,sf=0,roe=0,sb=0,cs=0;
+  for (const g of games) {
+    pa+=g.pa;ab+=g.ab;h+=g.h;s1+=g.singles;d+=g.doubles;t+=g.triples;hr+=g.hr;
+    rbi+=g.rbi;r+=g.r;bb+=g.bb;so+=g.so;hbp+=g.hbp;sac+=g.sac;sf+=g.sf;roe+=g.roe;sb+=g.sb;cs+=g.cs;
+  }
+  const avg=ab>0?h/ab:0;
+  const obpD=ab+bb+hbp+sf;
+  const obp=obpD>0?(h+bb+hbp)/obpD:0;
+  const tb=s1+2*d+3*t+4*hr;
+  const slg=ab>0?tb/ab:0;
+  const ops=obp+slg;
+  const iso=slg-avg;
+  const babipD=ab-so-hr+sf;
+  const babip=babipD>0?(h-hr)/babipD:0;
+  return {pa,ab,h,s1,d,t,hr,rbi,r,bb,so,hbp,sac,sf,roe,sb,cs,avg,obp,slg,ops,tb,
+          kpct:pa>0?so/pa:0, bbpct:pa>0?bb/pa:0,
+          sbpct:(sb+cs)>0?sb/(sb+cs):null, iso, babip};
+}
+
+// ─── PITCHING COMPUTE ────────────────────────────────────────
+function calcPitch(games) {
+  let ipD=0,gs=0,bf=0,pitches=0,w=0,l=0,sv=0,ha=0,ra=0,er=0,bbp=0,k=0,hbpp=0,lob=0,sb=0,cs=0;
+  for (const g of games) {
+    ipD+=ipToD(g.ip);gs+=g.gs;bf+=g.bf;pitches+=g.pitches;w+=g.w;l+=g.l;sv+=g.sv;
+    ha+=g.h_allowed;ra+=g.r_allowed;er+=g.er;bbp+=g.bb_p;k+=g.k;hbpp+=g.hbp_p;lob+=g.lob;
+    sb+=g.sb_p||0;cs+=g.cs_p||0;
+  }
+  const era=ipD>0?(er/ipD)*7:0;   // 7-inning game standard for softball
+  const whip=ipD>0?(bbp+ha)/ipD:0;
+  const k9=ipD>0?(k/ipD)*9:0;
+  const bb9=ipD>0?(bbp/ipD)*9:0;
+  const kbb=bbp>0?k/bbp:null;
+  const ppi=ipD>0?pitches/ipD:0;
+  const kpct=bf>0?k/bf:0;
+  const bbpct=bf>0?bbp/bf:0;
+  return {ipD,gs,app:games.length,bf,pitches,w,l,sv,ha,ra,er,bbp,k,hbpp,lob,sb,cs,
+          era,whip,k9,bb9,kbb,ppi,kpct,bbpct};
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('team-label').textContent = PLAYER.team;
+  document.getElementById('season-label').textContent = PLAYER.season;
+
+  const b = calcBat(GAMES);
+  const p = calcPitch(PITCHING);
+
+  // HERO BAR (combined)
+  const heroItems = [
+    {label:'AVG', value:fmt3(b.avg)},
+    {label:'OPS', value:fmt3(b.ops)},
+    {label:'RBI', value:b.rbi},
+    {label:'SB',  value:b.sb},
+    {label:'IP',  value:dToIP(p.ipD)},
+    {label:'ERA', value:fmt2(p.era)},
+    {label:'K',   value:p.k},
+    {label:'WHIP',value:fmt2(p.whip)},
+  ];
+  const hBar = document.getElementById('hero-stats');
+  heroItems.forEach(item => {
+    hBar.innerHTML += `<div class="hero-stat"><div class="hero-stat-value">${item.value}</div><div class="hero-stat-label">${item.label}</div></div>`;
+  });
+
+  // TABS
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ══════════ BATTING ══════════
+  const battingCards = [
+    {label:'PA',  desc:'Plate Appearances', val:b.pa},
+    {label:'AB',  desc:'At Bats',           val:b.ab},
+    {label:'H',   desc:'Hits',              val:b.h,  cls:'gold'},
+    {label:'2B',  desc:'Doubles',           val:b.d},
+    {label:'3B',  desc:'Triples',           val:b.t},
+    {label:'HR',  desc:'Home Runs',         val:b.hr},
+    {label:'TB',  desc:'Total Bases',       val:b.tb, cls:'gold'},
+    {label:'RBI', desc:'Runs Batted In',    val:b.rbi,cls:'gold'},
+    {label:'R',   desc:'Runs Scored',       val:b.r},
+    {label:'BB',  desc:'Walks',             val:b.bb},
+    {label:'SO',  desc:'Strikeouts',        val:b.so, cls:'red'},
+    {label:'HBP', desc:'Hit By Pitch',      val:b.hbp},
+    {label:'SB',  desc:'Stolen Bases',      val:b.sb, cls:'gold'},
+    {label:'CS',  desc:'Caught Stealing',   val:b.cs},
+    {label:'SB%', desc:'Stolen Base %',     val:fmtPct(b.sbpct), cls:'gold'},
+    {label:'ROE', desc:'Reached on Error',  val:b.roe},
+  ];
+  const bg = document.getElementById('batting-grid');
+  battingCards.forEach(c => {
+    bg.innerHTML += `<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+  });
+
+  const gp = GAMES.length;
+  const advCards = [
+    {label:'AVG',   val:fmt3(b.avg),  desc:`${b.h} hits in ${b.ab} at bats`, cls:''},
+    {label:'OBP',   val:fmt3(b.obp),  desc:`Gets on base ${Math.round(b.obp*100)}% of PA`, cls:''},
+    {label:'SLG',   val:fmt3(b.slg),  desc:`${b.tb} total bases in ${b.ab} AB`, cls:''},
+    {label:'OPS',   val:fmt3(b.ops),  desc:`Elite: >1.000 · Hers: ${fmt3(b.ops)}`, cls:''},
+    {label:'ISO',   val:fmt3(b.iso),  desc:`Isolated power — extra base rate`, cls:''},
+    {label:'BABIP', val:fmt3(b.babip),desc:`Avg on balls in play (excl K/HR)`, cls:''},
+    {label:'K%',    val:fmtPct(b.kpct),desc:`${b.so} K in ${b.pa} PA`, cls:'red'},
+    {label:'BB%',   val:fmtPct(b.bbpct),desc:`${b.bb} walks in ${b.pa} PA`, cls:''},
+    {label:'K:BB',  val:b.bb>0?(b.so/b.bb).toFixed(2):'—', desc:`Lower is better as a hitter`, cls:''},
+    {label:'R/G',   val:(b.r/gp).toFixed(2),  desc:`Runs per game over ${gp} games`, cls:''},
+    {label:'RBI/G', val:(b.rbi/gp).toFixed(2),desc:`RBI per game average`, cls:''},
+    {label:'SB/G',  val:(b.sb/gp).toFixed(2), desc:`Stolen bases per game`, cls:''},
+  ];
+  const ag = document.getElementById('adv-grid');
+  advCards.forEach(c => {
+    ag.innerHTML += `<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+  });
+
+  // HIT BAR
+  const totalH = b.h||1;
+  const hitSegs = [
+    {label:'1B',count:b.s1, color:'#f5c842'},
+    {label:'2B',count:b.d,  color:'#e0a800'},
+    {label:'3B',count:b.t,  color:'#d94f3d'},
+    {label:'HR',count:b.hr, color:'#b83a2b'},
+  ];
+  const hitBar = document.getElementById('hit-bar');
+  hitSegs.forEach(s => { if(s.count>0) hitBar.innerHTML+=`<div class="htb-seg" style="flex:${s.count};background:${s.color}">${s.label}</div>`; });
+  const sparks = document.getElementById('hit-sparks');
+  const maxH = Math.max(...hitSegs.map(s=>s.count),1);
+  hitSegs.forEach(s => {
+    const cls = (s.label==='3B'||s.label==='HR') ? 'red' : '';
+    sparks.innerHTML+=`<div class="spark-item"><span class="spark-label">${s.label}</span><div class="spark-bar-wrap"><div class="spark-bar ${cls}" style="width:${(s.count/maxH*100).toFixed(0)}%"></div></div><span class="spark-value">${s.count}</span></div>`;
+  });
+
+  // BATTING GAME LOG
+  const batBody = document.getElementById('bat-tbody');
+  GAMES.forEach(g => {
+    const avg=g.ab>0?g.h/g.ab:0;
+    const obpD=g.ab+g.bb+g.hbp+g.sf;
+    const obp=obpD>0?(g.h+g.bb+g.hbp)/obpD:0;
+    const tb=g.singles+2*g.doubles+3*g.triples+4*g.hr;
+    const slg=g.ab>0?tb/g.ab:0;
+    const ops=obp+slg;
+    const ds=new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    batBody.innerHTML+=`<tr>
+      <td>${ds}</td><td>${g.opponent}</td>
+      <td>${g.pa}</td><td>${g.ab}</td>
+      <td class="${g.h>=2?'td-gold':''}">${g.h}</td>
+      <td>${g.singles}</td><td>${g.doubles}</td><td>${g.triples}</td>
+      <td class="${g.hr>0?'td-gold':''}">${g.hr}</td>
+      <td class="${g.rbi>=2?'td-gold':''}">${g.rbi}</td>
+      <td>${g.r}</td><td>${g.bb}</td>
+      <td class="${g.so>0?'td-red':''}">${g.so}</td>
+      <td class="${avg>=.400?'td-gold':''}">${g.ab>0?fmt3(avg):'—'}</td>
+      <td>${obpD>0?fmt3(obp):'—'}</td>
+      <td>${g.ab>0?fmt3(slg):'—'}</td>
+      <td class="${ops>=1.0?'td-gold':''}">${g.ab>0?fmt3(ops):'—'}</td>
+      <td class="${g.sb>=2?'td-gold':''}">${g.sb}</td>
+    </tr>`;
+  });
+  document.getElementById('bat-tfoot').innerHTML=`<tr>
+    <td>Season</td><td>Totals</td>
+    <td>${b.pa}</td><td>${b.ab}</td><td>${b.h}</td><td>${b.s1}</td><td>${b.d}</td><td>${b.t}</td><td>${b.hr}</td>
+    <td>${b.rbi}</td><td>${b.r}</td><td>${b.bb}</td><td>${b.so}</td>
+    <td>${fmt3(b.avg)}</td><td>${fmt3(b.obp)}</td><td>${fmt3(b.slg)}</td><td>${fmt3(b.ops)}</td><td>${b.sb}</td>
+  </tr>`;
+
+  // ══════════ PITCHING ══════════
+  const pitchCards = [
+    {label:'APP', desc:'Appearances',     val:p.app},
+    {label:'GS',  desc:'Games Started',   val:p.gs},
+    {label:'IP',  desc:'Innings Pitched', val:dToIP(p.ipD), cls:'teal'},
+    {label:'BF',  desc:'Batters Faced',   val:p.bf},
+    {label:'P',   desc:'Total Pitches',   val:p.pitches},
+    {label:'W',   desc:'Wins',            val:p.w, cls:'teal'},
+    {label:'L',   desc:'Losses',          val:p.l},
+    {label:'SV',  desc:'Saves',           val:p.sv},
+    {label:'H',   desc:'Hits Allowed',    val:p.ha},
+    {label:'R',   desc:'Runs Allowed',    val:p.ra},
+    {label:'ER',  desc:'Earned Runs',     val:p.er},
+    {label:'BB',  desc:'Walks Issued',    val:p.bbp},
+    {label:'K',   desc:'Strikeouts',      val:p.k, cls:'teal'},
+    {label:'HBP', desc:'Hit Batters',     val:p.hbpp},
+    {label:'LOB', desc:'Left on Base',    val:p.lob},
+    {label:'SB',  desc:'Stolen Bases vs', val:p.sb},
+  ];
+  const pg = document.getElementById('pitch-grid');
+  pitchCards.forEach(c => {
+    pg.innerHTML+=`<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+  });
+
+  // GAUGES
+  const gauges = [
+    {val:fmt2(p.era),  label:'ERA',  sub:'Earned Run Average (7-inn)'},
+    {val:fmt2(p.whip), label:'WHIP', sub:'Walks + Hits per Inning'},
+    {val:fmt2(p.k9),   label:'K/9',  sub:'Strikeouts per 9 Innings'},
+    {val:fmt2(p.bb9),  label:'BB/9', sub:'Walks per 9 Innings'},
+    {val:p.kbb!==null?fmt2(p.kbb):'—', label:'K:BB', sub:`${p.k} K to ${p.bbp} BB`},
+    {val:fmt2(p.ppi),  label:'P/IP', sub:'Pitches per Inning'},
+  ];
+  const gr = document.getElementById('gauge-row');
+  gauges.forEach(g => {
+    gr.innerHTML+=`<div class="gauge-card"><div class="gauge-big">${g.val}</div><div class="gauge-label">${g.label}</div><div class="gauge-sub">${g.sub}</div></div>`;
+  });
+
+  const padvCards = [
+    {label:'K%',    val:fmtPct(p.kpct),  desc:`${p.k} strikeouts in ${p.bf} batters faced`, cls:'teal'},
+    {label:'BB%',   val:fmtPct(p.bbpct), desc:`${p.bbp} walks in ${p.bf} BF`, cls:''},
+    {label:'K-BB%', val:fmtPct(p.kpct-p.bbpct), desc:`K% minus BB% — higher is better`, cls:'teal'},
+    {label:'H/9',   val:fmt2(p.ipD>0?p.ha/p.ipD*9:0), desc:`Hits allowed per 9 innings`, cls:''},
+    {label:'P/BF',  val:fmt2(p.bf>0?p.pitches/p.bf:0),desc:`Pitches per batter faced`, cls:''},
+    {label:'W%',    val:p.w+p.l>0?fmtPct(p.w/(p.w+p.l)):'—', desc:`Win percentage (decisions only)`, cls:'teal'},
+    {label:'K/IP',  val:fmt2(p.ipD>0?p.k/p.ipD:0),    desc:`Raw strikeouts per inning`, cls:'teal'},
+    {label:'ER/G',  val:fmt2(p.app>0?p.er/p.app:0),   desc:`Earned runs per appearance`, cls:''},
+  ];
+  const pag = document.getElementById('padv-grid');
+  padvCards.forEach(c => {
+    pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+  });
+
+  // PITCHING GAME LOG
+  const pBody = document.getElementById('pitch-tbody');
+  PITCHING.forEach(g => {
+    const ipd = ipToD(g.ip);
+    const era = ipd>0?(g.er/ipd)*7:0;
+    const whip = ipd>0?(g.bb_p+g.h_allowed)/ipd:0;
+    const k9 = ipd>0?(g.k/ipd)*9:0;
+    const ppi = ipd>0?g.pitches/ipd:0;
+    const ds = new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    pBody.innerHTML+=`<tr>
+      <td>${ds}</td><td>${g.opponent}</td>
+      <td>${g.ip}</td>
+      <td>${g.gs?'✓':''}</td>
+      <td>${g.bf}</td><td>${g.pitches}</td>
+      <td class="${g.w?'td-teal':''}">${g.w||''}</td>
+      <td class="${g.l?'td-red':''}">${g.l||''}</td>
+      <td class="${g.sv?'td-teal':''}">${g.sv||''}</td>
+      <td>${g.h_allowed}</td><td>${g.r_allowed}</td>
+      <td class="${g.er>3?'td-red':g.er===0?'td-teal':''}">${g.er}</td>
+      <td>${g.bb_p}</td>
+      <td class="${g.k>=10?'td-teal':''}">${g.k}</td>
+      <td class="${era<=2?'td-teal':era>=5?'td-red':''}">${ipd>0?fmt2(era):'—'}</td>
+      <td>${ipd>0?fmt2(whip):'—'}</td>
+      <td class="${k9>=10?'td-teal':''}">${ipd>0?fmt2(k9):'—'}</td>
+      <td>${ipd>0?fmt2(ppi):'—'}</td>
+    </tr>`;
+  });
+  document.getElementById('pitch-tfoot').innerHTML=`<tr>
+    <td>Season</td><td>Totals</td>
+    <td>${dToIP(p.ipD)}</td><td>${p.gs}</td><td>${p.bf}</td><td>${p.pitches}</td>
+    <td>${p.w}</td><td>${p.l}</td><td>${p.sv}</td>
+    <td>${p.ha}</td><td>${p.ra}</td><td>${p.er}</td><td>${p.bbp}</td><td>${p.k}</td>
+    <td>${fmt2(p.era)}</td><td>${fmt2(p.whip)}</td><td>${fmt2(p.k9)}</td><td>${fmt2(p.ppi)}</td>
+  </tr>`;
+
+  // ══════════ BATTING CHARTS ══════════
+  const chartOpts = {
+    responsive:true,
+    plugins:{legend:{labels:{color:'#8a9bb0',font:{family:'Inter',size:11}}}},
+    scales:{
+      x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
+      y:{ticks:{color:'#8a9bb0',font:{size:10}},grid:{color:'#1e2f42'}}
+    }
+  };
+
+  // Cumulative AVG/OBP/OPS
+  let cAB=0,cH=0,cBB=0,cHBP=0,cSF=0,cTB=0;
+  const avgD=[],obpD2=[],opsD=[],lblB=[];
+  GAMES.forEach((g,i)=>{
+    cAB+=g.ab;cH+=g.h;cBB+=g.bb;cHBP+=g.hbp;cSF+=g.sf;
+    cTB+=g.singles+2*g.doubles+3*g.triples+4*g.hr;
+    const a=cAB>0?cH/cAB:0;
+    const od=cAB+cBB+cHBP+cSF;
+    const o=od>0?(cH+cBB+cHBP)/od:0;
+    const sl=cAB>0?cTB/cAB:0;
+    lblB.push(i+1);avgD.push(+a.toFixed(3));obpD2.push(+o.toFixed(3));opsD.push(+(o+sl).toFixed(3));
+  });
+  new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:lblB,datasets:[
+    {label:'AVG',data:avgD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
+    {label:'OBP',data:obpD2,borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
+    {label:'OPS',data:opsD,borderColor:'#8a9bb0',backgroundColor:'rgba(138,155,176,.08)',pointRadius:2,tension:.3},
+  ]},options:chartOpts});
+
+  new Chart(document.getElementById('rbiChart'),{type:'bar',data:{labels:GAMES.map((_,i)=>i+1),datasets:[
+    {label:'RBI',data:GAMES.map(g=>g.rbi),backgroundColor:'#f5c842'},
+    {label:'R',  data:GAMES.map(g=>g.r),  backgroundColor:'rgba(217,79,61,.7)'},
+  ]},options:{...chartOpts}});
+
+  let cumSB=0;
+  new Chart(document.getElementById('sbChart'),{type:'line',data:{labels:lblB,datasets:[
+    {label:'Stolen Bases',data:GAMES.map(g=>{cumSB+=g.sb;return cumSB;}),
+     borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.12)',pointRadius:2,fill:true,tension:.3}
+  ]},options:chartOpts});
+
+  const kR=[],bbR=[];
+  for(let i=0;i<GAMES.length;i++){
+    const sl=GAMES.slice(Math.max(0,i-4),i+1);
+    const tpa=sl.reduce((a,g)=>a+g.pa,0);
+    kR.push(tpa>0?+(sl.reduce((a,g)=>a+g.so,0)/tpa*100).toFixed(1):0);
+    bbR.push(tpa>0?+(sl.reduce((a,g)=>a+g.bb,0)/tpa*100).toFixed(1):0);
+  }
+  new Chart(document.getElementById('kbbChart'),{type:'line',data:{labels:lblB,datasets:[
+    {label:'K%', data:kR, borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
+    {label:'BB%',data:bbR,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
+  ]},options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>v+'%'}}}}});
+
+  // ══════════ PITCHING CHARTS ══════════
+  const pitchChartOpts = {...chartOpts};
+
+  // Cumulative ERA & WHIP
+  let cipD=0,cER=0,cBBP=0,cHA=0;
+  const eraD=[],whipD=[],lblP=[];
+  PITCHING.forEach((g,i)=>{
+    cipD+=ipToD(g.ip);cER+=g.er;cBBP+=g.bb_p;cHA+=g.h_allowed;
+    eraD.push(cipD>0?+(cER/cipD*7).toFixed(2):0);
+    whipD.push(cipD>0?+((cBBP+cHA)/cipD).toFixed(3):0);
+    lblP.push(i+1);
+  });
+  new Chart(document.getElementById('eraChart'),{type:'line',data:{labels:lblP,datasets:[
+    {label:'ERA', data:eraD, borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.08)',pointRadius:3,tension:.3},
+    {label:'WHIP',data:whipD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:3,tension:.3,yAxisID:'y2'},
+  ]},options:{...pitchChartOpts,scales:{
+    x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
+    y:{ticks:{color:'#38b2ac',font:{size:10}},grid:{color:'#1e2f42'},title:{display:true,text:'ERA',color:'#38b2ac',font:{size:10}}},
+    y2:{position:'right',ticks:{color:'#f5c842',font:{size:10}},grid:{drawOnChartArea:false},title:{display:true,text:'WHIP',color:'#f5c842',font:{size:10}}},
+  }}});
+
+  // K per outing bar
+  new Chart(document.getElementById('kChart'),{type:'bar',data:{labels:lblP,datasets:[
+    {label:'K',data:PITCHING.map(g=>g.k),backgroundColor:PITCHING.map(g=>g.k>=10?'#38b2ac':'rgba(56,178,172,.5)'),borderRadius:2},
+  ]},options:{...pitchChartOpts,plugins:{...pitchChartOpts.plugins,annotation:{}}}});
+
+  // Pitches per inning
+  new Chart(document.getElementById('pitchEffChart'),{type:'line',data:{labels:lblP,datasets:[
+    {label:'Pitches/IP',data:PITCHING.map(g=>{const d=ipToD(g.ip);return d>0?+(g.pitches/d).toFixed(1):0;}),
+     borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.1)',pointRadius:3,tension:.3},
+  ]},options:pitchChartOpts});
+
+  // Cumulative K9
+  let cipD2=0,cK=0;
+  const k9D=[];
+  PITCHING.forEach((g,i)=>{cipD2+=ipToD(g.ip);cK+=g.k;k9D.push(cipD2>0?+(cK/cipD2*9).toFixed(2):0);});
+  new Chart(document.getElementById('k9Chart'),{type:'line',data:{labels:lblP,datasets:[
+    {label:'K/9',data:k9D,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.12)',pointRadius:3,fill:true,tension:.3},
+  ]},options:pitchChartOpts});
+
+});
+</script>
+</body>
+</html>
