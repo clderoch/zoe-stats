@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const bg = document.getElementById('batting-grid');
   battingCards.forEach(c => {
-    bg.innerHTML += `<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+    bg.innerHTML += `<div class="stat-card" data-context="bat"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
   });
 
   const gp = GAMES.length;
@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const ag = document.getElementById('adv-grid');
   advCards.forEach(c => {
-    ag.innerHTML += `<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+    ag.innerHTML += `<div class="adv-card${c.cls?' '+c.cls:''}" data-context="bat"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
   });
 
   // HIT BAR
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const pg = document.getElementById('pitch-grid');
   pitchCards.forEach(c => {
-    pg.innerHTML+=`<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+    pg.innerHTML+=`<div class="stat-card" data-context="pitch"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
   });
 
   // GAUGES
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const gr = document.getElementById('gauge-row');
   gauges.forEach(g => {
-    gr.innerHTML+=`<div class="gauge-card"><div class="gauge-big">${g.val}</div><div class="gauge-label">${g.label}</div><div class="gauge-sub">${g.sub}</div></div>`;
+    gr.innerHTML+=`<div class="gauge-card" data-context="pitch"><div class="gauge-big">${g.val}</div><div class="gauge-label">${g.label}</div><div class="gauge-sub">${g.sub}</div></div>`;
   });
 
   const padvCards = [
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const pag = document.getElementById('padv-grid');
   padvCards.forEach(c => {
-    pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+    pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}" data-context="pitch"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
   });
 
   // PITCHING GAME LOG
@@ -677,9 +677,270 @@ document.addEventListener('DOMContentLoaded', () => {
   ]},options:pitchChartOpts});
 
   // ══════════ POPUP SYSTEM ══════════
-  const STAT_INFO = {
-    // ── BATTING COUNTING ──
+  const BAT_INFO = {
     PA:   { name:'Plate Appearances', color:'gold',
+            plain:'Every time Zoe steps into the batter\'s box counts as a plate appearance — hits, walks, strikeouts, hit-by-pitches, all of it.',
+            example:'💡 More PAs = more chances. A player with 80 PAs has had a very active season.' },
+    AB:   { name:'At Bats', color:'gold',
+            plain:'Like plate appearances, but walks, hit-by-pitches, and sacrifice plays don\'t count. At bats are what your batting average is calculated from.',
+            example:'💡 If Zoe walked 3 times in a game with 5 plate appearances, she only has 2 at bats.' },
+    H:    { name:'Hits', color:'gold',
+            plain:'Any time Zoe puts the ball in play and safely reaches base without an error — singles, doubles, triples, and home runs all count as hits.',
+            example:'💡 45+ hits is outstanding for a 10U player over a season.' },
+    '1B': { name:'Singles', color:'gold',
+            plain:'A hit where Zoe reaches first base. The most common type of hit — a ground ball through the infield or a blooper that drops in.',
+            example:'💡 Singles are the building blocks of a great batting average.' },
+    '2B': { name:'Doubles', color:'gold',
+            plain:'A hit where Zoe reaches second base. Usually a hard line drive into the gap or down the line that rolls far enough for her to keep running.',
+            example:'💡 Doubles are a great sign of gap-to-gap power and aggressive baserunning.' },
+    '3B': { name:'Triples', color:'gold',
+            plain:'A hit where Zoe reaches third base. The rarest hit in softball — it takes a combination of a well-placed ball AND elite speed to leg it out.',
+            example:'💡 Triples are often called the most exciting play in baseball/softball.' },
+    HR:   { name:'Home Runs', color:'gold',
+            plain:'Zoe hit the ball over the fence (or inside-the-park) and scored automatically along with anyone on base.',
+            example:'💡 A home run is the best possible outcome of a single at bat.' },
+    TB:   { name:'Total Bases', color:'gold',
+            plain:'Counts how many bases Zoe\'s hits are worth: 1 for a single, 2 for a double, 3 for a triple, 4 for a home run. It\'s the raw material for slugging percentage.',
+            example:'💡 Formula: (1B×1) + (2B×2) + (3B×3) + (HR×4)' },
+    RBI:  { name:'Runs Batted In', color:'gold',
+            plain:'Every time Zoe gets a hit (or walk, or sacrifice) that causes a teammate — or herself on a home run — to score, that\'s an RBI.',
+            example:'💡 High RBI shows Zoe is a clutch hitter who comes through with runners on base.' },
+    R:    { name:'Runs Scored', color:'gold',
+            plain:'Every time Zoe crosses home plate and scores a run for her team, whether she batted herself in or a teammate drove her in.',
+            example:'💡 High runs scored shows Zoe gets on base AND is fast enough to score once she\'s there.' },
+    BB:   { name:'Walks (Base on Balls)', color:'gold',
+            plain:'When the pitcher throws four balls before Zoe swings and misses or gets a strike called, she earns a free walk to first base. Shows great patience at the plate.',
+            example:'💡 Walking means Zoe didn\'t swing at bad pitches — that\'s a skill, not a failure.' },
+    SO:   { name:'Strikeouts', color:'red',
+            plain:'When Zoe gets three strikes — whether she swings and misses, or a pitch in the strike zone is called — she\'s retired without putting the ball in play.',
+            example:'💡 Her low strikeout count in 80+ plate appearances shows she makes great contact.' },
+    HBP:  { name:'Hit By Pitch', color:'gold',
+            plain:'When a pitch hits Zoe, she gets a free pass to first base. It counts toward her on-base percentage just like a walk.',
+            example:'💡 Getting hit by pitches is part of the game — crowding the plate can be a strategy.' },
+    SB:   { name:'Stolen Bases', color:'gold',
+            plain:'When Zoe takes off running and successfully steals the next base without the ball being hit. Requires speed, good reads on pitchers, and fast reactions.',
+            example:'💡 46+ stolen bases is elite. She\'s one of the most dangerous baserunners on the field.' },
+    CS:   { name:'Caught Stealing', color:'red',
+            plain:'When Zoe attempts to steal a base but gets thrown out. Happens to every baserunner — what matters is the success rate.',
+            example:'💡 A 96%+ success rate means she almost never gets thrown out — she picks her spots perfectly.' },
+    'SB%':{ name:'Stolen Base Success Rate', color:'gold',
+            plain:'The percentage of steal attempts that succeed. Divide stolen bases by total attempts (SB + CS). Anything above 70% is considered good at the pro level.',
+            example:'💡 Zoe\'s 96%+ rate means she almost never gets thrown out — she picks her spots perfectly.' },
+    ROE:  { name:'Reached on Error', color:'gold',
+            plain:'Zoe hit the ball but would normally have been out — except the defense made a mistake and she reached base safely. Doesn\'t count as a hit in the stats.',
+            example:'💡 ROE doesn\'t count as a hit in the stats, but it still helps the team.' },
+    AVG:  { name:'Batting Average', color:'gold',
+            plain:'The most basic hitting stat: how often Zoe gets a hit when she has an official at bat. Divide hits by at bats. .300 is considered very good at the pro level.',
+            example:'💡 Zoe\'s .600+ average means she gets a hit more than half the time. That\'s elite at any level.' },
+    OBP:  { name:'On-Base Percentage', color:'gold',
+            plain:'How often Zoe reaches base by ANY means — hits, walks, or getting hit by a pitch. Better than batting average because walks count too.',
+            example:'💡 Formula: (H + BB + HBP) ÷ (AB + BB + HBP + SF). Above .400 is excellent.' },
+    SLG:  { name:'Slugging Percentage', color:'gold',
+            plain:'Measures hitting POWER. Instead of just counting hits, it counts total bases per at bat. A double counts twice as much as a single.',
+            example:'💡 Formula: Total Bases ÷ At Bats. Above .500 is considered power-hitting territory.' },
+    OPS:  { name:'On-Base Plus Slugging', color:'gold',
+            plain:'The best single number to summarize a hitter. Add OBP and SLG together. It captures both how often you get on base AND how much damage you do when you hit.',
+            example:'💡 Above 1.000 is elite. Zoe\'s 1.600+ OPS puts her in superstar territory for her age group.' },
+    ISO:  { name:'Isolated Power', color:'gold',
+            plain:'Strips out singles and measures only extra-base hit ability. Subtract batting average from slugging percentage. Shows how often Zoe hits for extra bases.',
+            example:'💡 Formula: SLG − AVG. Above .200 is considered strong power at any level.' },
+    BABIP:{ name:'Batting Average on Balls in Play', color:'gold',
+            plain:'When Zoe puts the ball in play (not a strikeout or home run), what percentage become hits? Reveals whether results might be due to luck or skill.',
+            example:'💡 The league average BABIP is usually around .300. Much higher may mean she\'s been fortunate; lower might mean bad luck.' },
+    'K%': { name:'Strikeout Rate (Batting)', color:'red',
+            plain:'Out of all her plate appearances as a batter, what percentage ended in a strikeout? Lower is better — it means she puts the ball in play more often.',
+            example:'💡 A K% below 20% is excellent for a hitter. Zoe\'s rate shows she makes consistent contact.' },
+    'BB%':{ name:'Walk Rate (Batting)', color:'gold',
+            plain:'Out of all her plate appearances as a batter, what percentage ended in a walk? Higher is better — it shows she has a good eye and doesn\'t chase bad pitches.',
+            example:'💡 A BB% above 10% shows strong plate discipline.' },
+    'K:BB':{ name:'Strikeout-to-Walk Ratio (Batting)', color:'gold',
+             plain:'As a hitter, you want this number LOW. It compares how many times she struck out vs how many times she walked. Closer to 0 means better plate discipline.',
+             example:'💡 A K:BB below 1.5 is solid for a hitter. Below 1.0 means she walks more than she strikes out.' },
+    'R/G':  { name:'Runs Per Game', color:'gold',
+              plain:'On average, how many runs does Zoe score per game played? Combines her ability to get on base with her speed and her teammates\' ability to drive her in.',
+              example:'💡 Scoring nearly a run per game as an individual contributor is excellent production.' },
+    'RBI/G':{ name:'RBI Per Game', color:'gold',
+              plain:'How many runs does Zoe drive in per game on average? Shows her consistency as a clutch hitter throughout the season.',
+              example:'💡 Consistent RBI production game-to-game shows she comes up big when it matters.' },
+    'SB/G': { name:'Stolen Bases Per Game', color:'gold',
+              plain:'How many bases does Zoe steal per game on average? A high rate means she\'s a consistent threat on the bases every single game.',
+              example:'💡 Over 1 stolen base per game is a game-changing baserunning presence.' },
+  };
+
+  const PITCH_INFO = {
+    APP:  { name:'Appearances', color:'teal',
+            plain:'The total number of games Zoe pitched in, whether she started the game or came in as a reliever during the game.',
+            example:'💡 22 appearances in a season shows she\'s a workhorse and her team\'s go-to pitcher.' },
+    GS:   { name:'Games Started', color:'teal',
+            plain:'How many times Zoe was the starting pitcher — meaning she was on the mound when the first batter of the game stepped up.',
+            example:'💡 13 starts out of 22 appearances means she both starts games and comes in as a reliever.' },
+    IP:   { name:'Innings Pitched', color:'teal',
+            plain:'The total number of innings Zoe pitched. Each out is 1/3 of an inning, so 63.2 means 63 full innings plus 2 outs. More innings = more work done.',
+            example:'💡 63+ innings is a heavy workload — shows how much her team relies on her.' },
+    BF:   { name:'Batters Faced', color:'teal',
+            plain:'The total number of batters Zoe faced across all her pitching appearances — every at bat against her counts, regardless of the outcome.',
+            example:'💡 274 batters faced means Zoe has seen a huge variety of hitters and situations.' },
+    'P':  { name:'Total Pitches', color:'teal',
+            plain:'The raw count of every pitch Zoe threw across all appearances this season — balls, strikes, swings and misses, foul balls, everything.',
+            example:'💡 1,225 pitches is a full season\'s work. Pitch counts help coaches monitor arm health.' },
+    W:    { name:'Wins', color:'teal',
+            plain:'A pitcher gets a win when she was the pitcher of record when her team took the lead for good and held it.',
+            example:'💡 9 wins in a season is an excellent record for any pitcher at any level.' },
+    L:    { name:'Losses', color:'teal',
+            plain:'A pitcher gets a loss when she was the pitcher when the opposing team scored the run that put them ahead for good.',
+            example:'💡 0 losses means Zoe\'s team never lost a game she was the pitcher of record for.' },
+    SV:   { name:'Save', color:'teal',
+            plain:'A save is when Zoe comes into the game in a close situation and finishes the game without giving up the lead.',
+            example:'💡 Getting a save means the coach trusted her to seal the deal in a pressure situation.' },
+    H:    { name:'Hits Allowed', color:'teal',
+            plain:'The number of hits the opposing batters got against Zoe while she was pitching. Fewer hits allowed means batters aren\'t making solid contact.',
+            example:'💡 30 hits allowed in 63+ innings is a very low rate — less than half a hit per inning.' },
+    R:    { name:'Runs Allowed', color:'teal',
+            plain:'Total runs that scored while Zoe was pitching, including runs due to errors by her teammates (which aren\'t her "fault").',
+            example:'💡 Runs allowed is different from earned runs — defense behind a pitcher matters a lot.' },
+    ER:   { name:'Earned Runs', color:'teal',
+            plain:'Runs that scored while Zoe was pitching that were her responsibility — not counting runs that only scored because of fielding errors behind her.',
+            example:'💡 Earned runs are the truest measure of a pitcher\'s performance.' },
+    BB:   { name:'Walks Issued', color:'teal',
+            plain:'The number of batters Zoe walked by throwing four balls. Walks are free passes that the pitcher gives away — the fewer, the better.',
+            example:'💡 Command and control is the ability to throw strikes. Fewer walks = better control.' },
+    K:    { name:'Strikeouts', color:'teal',
+            plain:'Every time Zoe got a batter out by making them swing and miss for strike three, or by throwing a called third strike. The most dominant pitching outcome.',
+            example:'💡 153 strikeouts in a season is exceptional — that\'s over 2 strikeouts per inning.' },
+    LOB:  { name:'Left on Base', color:'teal',
+            plain:'Runners who were on base when Zoe\'s pitching appearance ended. Stranding runners is a sign of pitching out of trouble.',
+            example:'💡 Leaving runners stranded is a skill — it means she gets big outs when the pressure is on.' },
+    ERA:  { name:'Earned Run Average', color:'teal',
+            plain:'The most important pitching stat: how many earned runs would she allow per full game (6 innings in 10U softball)? Lower is much better.',
+            example:'💡 Formula: (ER × 6) ÷ IP. Below 2.00 is elite. Zoe\'s 2.64 is very strong.' },
+    WHIP: { name:'Walks + Hits Per Inning', color:'teal',
+            plain:'Adds up walks and hits allowed, then divides by innings pitched. Shows how many baserunners Zoe allows per inning. Lower = fewer runners, more dominant.',
+            example:'💡 Below 1.00 is excellent. Below 1.50 is solid. Zoe\'s 1.41 is very respectable.' },
+    'K/9':{ name:'Strikeouts Per 9 Innings', color:'teal',
+            plain:'If Zoe pitched a full 9-inning game at her current rate, how many batters would she strike out? Standardizes strikeouts to a fair comparison rate.',
+            example:'💡 Above 10.0 K/9 is elite strikeout stuff. Zoe\'s rate is outstanding.' },
+    'BB/9':{ name:'Walks Per 9 Innings', color:'teal',
+             plain:'How many walks would Zoe issue per 9-inning game at her current rate? Shows her command and control. Lower is much better.',
+             example:'💡 Below 3.0 BB/9 is solid command. Elite command pitchers are below 2.0.' },
+    'K:BB':{ name:'Strikeout-to-Walk Ratio (Pitching)', color:'teal',
+             plain:'As a pitcher, you want this HIGH. Compares how many batters she struck out vs how many she walked. A high ratio means she dominates AND has control.',
+             example:'💡 Above 2.0 is solid. Above 3.0 is excellent. Elite pitchers are 4.0 or higher.' },
+    'P/IP':{ name:'Pitches Per Inning', color:'teal',
+             plain:'On average, how many pitches does Zoe need to get through one inning? Fewer pitches per inning means she\'s efficient and can pitch deeper into games.',
+             example:'💡 Below 15 pitches per inning is very efficient. Above 20 suggests hitters are making her work.' },
+    'K%':  { name:'Strikeout Rate (Pitching)', color:'teal',
+             plain:'Out of every batter she faced as a pitcher, what percentage did she strike out? Higher is much better — strikeouts are the most dominant outcome.',
+             example:'💡 Above 30% K rate is considered elite strikeout ability at any level.' },
+    'BB%': { name:'Walk Rate (Pitching)', color:'teal',
+             plain:'Out of every batter she faced as a pitcher, what percentage did she walk? Lower is much better — walks are free baserunners she hands to the offense.',
+             example:'💡 Below 10% BB rate shows strong command and strike-throwing ability.' },
+    'K-BB%':{ name:'K Minus BB Percentage', color:'teal',
+              plain:'Subtracts walk rate from strikeout rate. One of the purest measures of a pitcher\'s true stuff — it rewards strikeouts AND punishes walks equally.',
+              example:'💡 Above 15% is solid. Above 20% is excellent. It\'s hard to fake a high K-BB%.' },
+    'H/9': { name:'Hits Allowed Per 9 Innings', color:'teal',
+             plain:'How many hits would she allow per 9-inning game at her current rate? Low hit rates mean batters aren\'t making solid contact against her.',
+             example:'💡 Below 7.0 H/9 is solid. Below 5.0 is dominant. Fewer hits = more outs made.' },
+    'P/BF':{ name:'Pitches Per Batter Faced', color:'teal',
+             plain:'On average, how many pitches does Zoe throw to each batter before the at bat ends? Fewer pitches per batter means she\'s getting quick outs.',
+             example:'💡 Below 4.0 pitches per batter is efficient. It helps her stay fresh deep into games.' },
+    'W%':  { name:'Win Percentage', color:'teal',
+             plain:'Of the games where Zoe was the pitcher of record, what percentage did her team win? Captures overall effectiveness in decisions.',
+             example:'💡 Above .600 is a winning pitcher. Above .700 is an ace-level win percentage.' },
+    'K/IP':{ name:'Strikeouts Per Inning', color:'teal',
+             plain:'Raw strikeouts divided by innings pitched. Shows how many punchouts she gets every inning on average. Above 1.0 means more than a strikeout per inning.',
+             example:'💡 Above 1.0 K/IP means she strikes out more than 9 batters per 9 innings — elite territory.' },
+    'ER/G':{ name:'Earned Runs Per Appearance', color:'teal',
+             plain:'On average, how many earned runs does Zoe give up each time she takes the mound? Shows her consistency across all outings.',
+             example:'💡 Below 1.0 per appearance is excellent. It means she almost always keeps the game close.' },
+  };
+
+  function openPopup(key, value, context) {
+    const info = context === 'pitch' ? PITCH_INFO[key] : BAT_INFO[key];
+    if (!info) return;
+    const isTeal = info.color === 'teal';
+    const overlay = document.getElementById('popup-overlay');
+    document.getElementById('popup-abbr').textContent = key;
+    document.getElementById('popup-abbr').className = 'popup-abbr' + (isTeal ? ' teal' : '');
+    document.getElementById('popup-name').textContent = info.name;
+    document.getElementById('popup-val').textContent = value || '—';
+    document.getElementById('popup-val').className = 'popup-her-val' + (isTeal ? ' teal' : '');
+    document.getElementById('popup-plain').textContent = info.plain;
+    document.getElementById('popup-example').textContent = info.example;
+    document.getElementById('popup-example').className = 'popup-example' + (isTeal ? ' teal' : '');
+    overlay.classList.add('open');
+    document.getElementById('popup-close').focus();
+  }
+
+  function closePopup() {
+    document.getElementById('popup-overlay').classList.remove('open');
+  }
+
+  document.getElementById('popup-close').addEventListener('click', closePopup);
+  document.getElementById('popup-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closePopup(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
+
+  // Wire up stat cards (batting and pitching, context-aware)
+  document.querySelectorAll('.stat-card').forEach(card => {
+    const label = card.querySelector('.stat-card-label')?.textContent?.trim();
+    const value = card.querySelector('.stat-card-value')?.textContent?.trim();
+    const ctx = card.dataset.context || 'bat';
+    const info = ctx === 'pitch' ? PITCH_INFO[label] : BAT_INFO[label];
+    if (label && info) {
+      card.setAttribute('role','button');
+      card.setAttribute('tabindex','0');
+      card.setAttribute('aria-label', 'Learn about ' + label);
+      card.addEventListener('click', () => openPopup(label, value, ctx));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, ctx); });
+    }
+  });
+
+  // Wire up advanced cards (context-aware)
+  document.querySelectorAll('.adv-card').forEach(card => {
+    const label = card.querySelector('.adv-card-label')?.textContent?.trim();
+    const value = card.querySelector('.adv-card-value')?.textContent?.trim();
+    const ctx = card.dataset.context || 'bat';
+    const info = ctx === 'pitch' ? PITCH_INFO[label] : BAT_INFO[label];
+    if (label && info) {
+      card.setAttribute('role','button');
+      card.setAttribute('tabindex','0');
+      card.setAttribute('aria-label', 'Learn about ' + label);
+      card.addEventListener('click', () => openPopup(label, value, ctx));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, ctx); });
+    }
+  });
+
+  // Wire up gauge cards (always pitching)
+  document.querySelectorAll('.gauge-card').forEach(card => {
+    const label = card.querySelector('.gauge-label')?.textContent?.trim();
+    const value = card.querySelector('.gauge-big')?.textContent?.trim();
+    if (label && PITCH_INFO[label]) {
+      card.setAttribute('role','button');
+      card.setAttribute('tabindex','0');
+      card.setAttribute('aria-label', 'Learn about ' + label);
+      card.addEventListener('click', () => openPopup(label, value, 'pitch'));
+      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, 'pitch'); });
+    }
+  });
+
+  // Wire up table column headers (batting table = bat, pitching table = pitch)
+  document.querySelectorAll('#bat-log thead th').forEach(th => {
+    const key = th.textContent.trim();
+    if (BAT_INFO[key]) {
+      th.setAttribute('data-key', key);
+      th.setAttribute('title', BAT_INFO[key].name);
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => openPopup(key, null, 'bat'));
+    }
+  });
+  document.querySelectorAll('#pitch-log thead th').forEach(th => {
+    const key = th.textContent.trim();
+    if (PITCH_INFO[key]) {
+      th.setAttribute('data-key', key);
+      th.setAttribute('title', PITCH_INFO[key].name);
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => openPopup(key, null, 'pitch'));
+    }
+  });
             plain:'Every time Zoe steps into the batter\'s box counts as a plate appearance — hits, walks, strikeouts, hit-by-pitches, all of it.',
             example:'💡 More PAs = more chances. A player with 80 PAs has had a very active season.' },
     AB:   { name:'At Bats', color:'gold',
@@ -726,208 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
             example:'💡 2 caught stealing on 43 attempts is a 95.3% success rate — that\'s exceptional.' },
     'SB%':{ name:'Stolen Base Success Rate', color:'gold',
             plain:'The percentage of steal attempts that succeed. Divide stolen bases by total attempts (SB + CS). Anything above 70% is considered good at the pro level.',
-            example:'💡 Zoe\'s 95%+ rate means she almost never gets thrown out — she picks her spots perfectly.' },
-    ROE:  { name:'Reached on Error', color:'gold',
-            plain:'Zoe hit the ball but would normally have been out — except the defense made a mistake (dropped a throw, bobbled a grounder) and she reached base safely.',
-            example:'💡 ROE doesn\'t count as a hit in the stats, but it still helps the team.' },
-    // ── BATTING ADVANCED ──
-    AVG:  { name:'Batting Average', color:'gold',
-            plain:'The most basic hitting stat: how often Zoe gets a hit when she has an official at bat. Divide hits by at bats. .300 is considered very good at the pro level.',
-            example:'💡 Zoe\'s .594 average means she gets a hit more than half the time. That\'s elite at any level.' },
-    OBP:  { name:'On-Base Percentage', color:'gold',
-            plain:'How often Zoe reaches base by ANY means — hits, walks, or getting hit by a pitch. Better than batting average because walks count too.',
-            example:'💡 Formula: (H + BB + HBP) ÷ (AB + BB + HBP + SF). Above .400 is excellent.' },
-    SLG:  { name:'Slugging Percentage', color:'gold',
-            plain:'Measures hitting POWER. Instead of just counting hits, it counts total bases per at bat. A double counts twice as much as a single.',
-            example:'💡 Formula: Total Bases ÷ At Bats. Above .500 is considered power-hitting territory.' },
-    OPS:  { name:'On-Base Plus Slugging', color:'gold',
-            plain:'The best single number to summarize a hitter. Add OBP and SLG together. It captures both how often you get on base AND how much damage you do when you hit.',
-            example:'💡 Above 1.000 is elite. Zoe\'s 1.016 OPS puts her in superstar territory for her age group.' },
-    ISO:  { name:'Isolated Power', color:'gold',
-            plain:'Strips out singles and measures only extra-base hit ability. Subtract batting average from slugging percentage. Shows how often Zoe hits for extra bases.',
-            example:'💡 Formula: SLG − AVG. Above .200 is considered strong power at any level.' },
-    BABIP:{ name:'Batting Average on Balls in Play', color:'gold',
-            plain:'When Zoe puts the ball in play (not a strikeout or home run), what percentage become hits? This reveals whether her results might be due to luck or skill.',
-            example:'💡 The league average BABIP is usually around .300. Much higher may mean she\'s been fortunate; lower might mean bad luck.' },
-    'K%': { name:'Strikeout Rate', color:'red',
-            plain:'Out of all her plate appearances, what percentage ended in a strikeout? Lower is better for a hitter — it means she puts the ball in play more often.',
-            example:'💡 A K% below 20% is excellent. Zoe\'s rate shows she makes consistent contact.' },
-    'BB%':{ name:'Walk Rate', color:'gold',
-            plain:'Out of all her plate appearances, what percentage ended in a walk? Higher is better — it shows she has a good eye and doesn\'t chase bad pitches.',
-            example:'💡 A BB% above 10% shows strong plate discipline.' },
-    'K:BB':{ name:'Strikeout-to-Walk Ratio', color:'gold',
-             plain:'As a hitter, you want this number LOW. It compares how many times she struck out vs how many times she walked. Closer to 0 means better plate discipline.',
-             example:'💡 A K:BB below 1.5 is solid for a hitter. Below 1.0 means she walks more than she strikes out.' },
-    'R/G':  { name:'Runs Per Game', color:'gold',
-              plain:'On average, how many runs does Zoe score per game played? Combines her ability to get on base with her speed and her teammates\' ability to drive her in.',
-              example:'💡 Scoring nearly a run per game as an individual contributor is excellent production.' },
-    'RBI/G':{ name:'RBI Per Game', color:'gold',
-              plain:'How many runs does Zoe drive in per game on average? Shows her consistency as a clutch hitter throughout the season.',
-              example:'💡 Consistent RBI production game-to-game shows she comes up big when it matters.' },
-    'SB/G': { name:'Stolen Bases Per Game', color:'gold',
-              plain:'How many bases does Zoe steal per game on average? A high rate means she\'s a consistent threat on the bases every single game.',
-              example:'💡 Over 1 stolen base per game is a game-changing baserunning presence.' },
-    // ── PITCHING COUNTING ──
-    APP:  { name:'Appearances', color:'teal',
-            plain:'The total number of games Zoe pitched in, whether she started the game or came in as a reliever during the game.',
-            example:'💡 21 appearances in a season shows she\'s a workhorse and her team\'s go-to pitcher.' },
-    GS:   { name:'Games Started', color:'teal',
-            plain:'How many times Zoe was the starting pitcher — meaning she was on the mound when the first batter of the game stepped up.',
-            example:'💡 12 starts out of 21 appearances means she both starts games and comes in as a reliever.' },
-    IP:   { name:'Innings Pitched', color:'teal',
-            plain:'The total number of innings Zoe pitched. Each out is 1/3 of an inning, so 58.2 means 58 full innings plus 2 outs. More innings = more work done.',
-            example:'💡 58.2 innings is a heavy workload — shows how much her team relies on her.' },
-    BF:   { name:'Batters Faced', color:'teal',
-            plain:'The total number of batters Zoe faced across all her pitching appearances — every at bat against her counts, regardless of the outcome.',
-            example:'💡 254 batters faced means Zoe has seen a huge variety of hitters and situations.' },
-    'P':  { name:'Total Pitches', color:'teal',
-            plain:'The raw count of every pitch Zoe threw across all appearances this season — balls, strikes, swings and misses, foul balls, everything.',
-            example:'💡 1,134 pitches is a full season\'s work. Pitch counts help coaches monitor arm health.' },
-    W:    { name:'Wins', color:'teal',
-            plain:'A pitcher gets a win when she was the pitcher of record when her team took the lead for good. She usually needs to pitch at least 4 innings as the starter.',
-            example:'💡 9 wins in a season is an excellent record for any pitcher at any level.' },
-    L:    { name:'Losses', color:'teal',
-            plain:'A pitcher gets a loss when she was the pitcher when the opposing team scored the run that put them ahead for good, and her team never retook the lead.',
-            example:'💡 0 losses means Zoe\'s team never lost a game she was the pitcher of record for.' },
-    SV:   { name:'Save', color:'teal',
-            plain:'A save is when Zoe comes into the game in a close situation (usually protecting a small lead) and finishes the game without giving up the lead.',
-            example:'💡 Saves are a closer\'s stat — getting one means the coach trusted her to seal the deal.' },
-    'H':  { name:'Hits Allowed', color:'teal',
-            plain:'The number of hits the opposing batters got against Zoe while she was pitching. Fewer hits allowed means batters aren\'t making solid contact.',
-            example:'💡 27 hits allowed in 58+ innings is a very low rate — less than half a hit per inning.' },
-    'R':  { name:'Runs Allowed', color:'teal',
-            plain:'Total runs that scored while Zoe was pitching, including runs that scored due to errors by her teammates (which aren\'t her "fault").',
-            example:'💡 Runs allowed is different from earned runs — defense behind a pitcher matters a lot.' },
-    ER:   { name:'Earned Runs', color:'teal',
-            plain:'Runs that scored while Zoe was pitching that were her responsibility — not counting runs that only scored because of fielding errors behind her.',
-            example:'💡 26 earned runs in 58+ innings is a strong mark of pitching efficiency.' },
-    'BB': { name:'Walks Issued', color:'teal',
-            plain:'The number of batters Zoe walked by throwing four balls. Walks are free passes that the pitcher gives away — the fewer, the better.',
-            example:'💡 Command and control is the ability to throw strikes. Fewer walks = better control.' },
-    K:    { name:'Strikeouts', color:'teal',
-            plain:'Every time Zoe got a batter out by making them swing and miss for strike three, or by throwing a called third strike. The most dominant pitching outcome.',
-            example:'💡 139 strikeouts in a season is exceptional — that\'s over 6 strikeouts every 4 innings.' },
-    LOB:  { name:'Left on Base', color:'teal',
-            plain:'Runners who were on base when Zoe\'s pitching appearance ended (inning over or she was replaced). Stranding runners is a sign of pitching out of trouble.',
-            example:'💡 Leaving runners stranded is a skill — it means she gets big outs when the pressure is on.' },
-    // ── PITCHING ADVANCED ──
-    ERA:  { name:'Earned Run Average', color:'teal',
-            plain:'The most important pitching stat: how many earned runs would she allow per full game (6 innings in 10U softball)? Lower is much better.',
-            example:'💡 Formula: (ER × 6) ÷ IP. Below 2.00 is elite. Zoe\'s 2.66 is very strong.' },
-    WHIP: { name:'Walks + Hits Per Inning', color:'teal',
-            plain:'Adds up walks and hits allowed, then divides by innings pitched. Shows how many baserunners Zoe allows per inning. Lower = fewer runners, more dominant.',
-            example:'💡 Below 1.00 is excellent. Below 1.50 is solid. Zoe\'s 1.43 is respectable for her workload.' },
-    'K/9':{ name:'Strikeouts Per 9 Innings', color:'teal',
-            plain:'If Zoe pitched a full 9-inning game at her current rate, how many batters would she strike out? Standardizes strikeouts to a fair comparison rate.',
-            example:'💡 Above 10.0 K/9 is elite strikeout stuff. Zoe\'s rate is outstanding.' },
-    'BB/9':{ name:'Walks Per 9 Innings', color:'teal',
-             plain:'How many walks would Zoe issue per 9-inning game at her current rate? Shows her command and control. Lower is much better.',
-             example:'💡 Below 3.0 BB/9 is solid command. Elite command pitchers are below 2.0.' },
-    'K:BB':{ name:'Strikeout-to-Walk Ratio', color:'teal',
-             plain:'As a pitcher, you want this HIGH. Compares how many batters she struck out vs how many she walked. A high ratio means she dominates AND has control.',
-             example:'💡 Above 2.0 is solid. Above 3.0 is excellent. Elite pitchers are 4.0 or higher.' },
-    'P/IP':{ name:'Pitches Per Inning', color:'teal',
-             plain:'On average, how many pitches does Zoe need to get through one inning? Fewer pitches per inning means she\'s efficient and can pitch deeper into games.',
-             example:'💡 Below 15 pitches per inning is very efficient. Above 20 suggests hitters are making her work.' },
-    'K%':  { name:'Strikeout Rate (Pitching)', color:'teal',
-             plain:'Out of every batter she faced, what percentage did she strike out? Higher is much better for a pitcher — strikeouts are the most dominant outcome.',
-             example:'💡 Above 30% K rate is considered elite strikeout ability at any level.' },
-    'BB%': { name:'Walk Rate (Pitching)', color:'teal',
-             plain:'Out of every batter she faced, what percentage did she walk? Lower is much better for a pitcher — walks are free baserunners she hands to the offense.',
-             example:'💡 Below 10% BB rate shows strong command and strike-throwing ability.' },
-    'K-BB%':{ name:'K Minus BB Percentage', color:'teal',
-              plain:'Subtracts walk rate from strikeout rate. This is considered one of the purest measures of a pitcher\'s true stuff — it rewards strikeouts AND punishes walks equally.',
-              example:'💡 Above 15% is solid. Above 20% is excellent. It\'s hard to fake a high K-BB%.' },
-    'H/9': { name:'Hits Allowed Per 9 Innings', color:'teal',
-             plain:'How many hits would she allow per 9-inning game at her current rate? Low hit rates mean batters aren\'t making solid contact against her.',
-             example:'💡 Below 7.0 H/9 is solid. Below 5.0 is dominant. Fewer hits = more outs made.' },
-    'P/BF':{ name:'Pitches Per Batter Faced', color:'teal',
-             plain:'On average, how many pitches does Zoe throw to each batter before the at bat ends? Fewer pitches per batter means she\'s getting quick outs.',
-             example:'💡 Below 4.0 pitches per batter is efficient. It helps her stay fresh deep into games.' },
-    'W%':  { name:'Win Percentage', color:'teal',
-             plain:'Of the games where Zoe was the pitcher of record (got a win or a loss assigned), what percentage did her team win? Captures overall effectiveness in decisions.',
-             example:'💡 Above .600 is a winning pitcher. Above .700 is an ace-level win percentage.' },
-    'K/IP':{ name:'Strikeouts Per Inning', color:'teal',
-             plain:'Raw strikeouts divided by innings pitched. Shows how many punchouts she gets every inning on average. Above 1.0 means more than a strikeout per inning.',
-             example:'💡 Above 1.0 K/IP means she strikes out more than 9 batters per 9 innings — elite territory.' },
-    'ER/G':{ name:'Earned Runs Per Appearance', color:'teal',
-             plain:'On average, how many earned runs does Zoe give up each time she takes the mound? Shows her consistency across all outings.',
-             example:'💡 Below 1.0 per appearance is excellent. It means she almost always keeps the game close.' },
-  };
-
-  function openPopup(key, value) {
-    const info = STAT_INFO[key];
-    if (!info) return;
-    const isTeal = info.color === 'teal';
-    const overlay = document.getElementById('popup-overlay');
-    document.getElementById('popup-abbr').textContent = key;
-    document.getElementById('popup-abbr').className = 'popup-abbr' + (isTeal ? ' teal' : '');
-    document.getElementById('popup-name').textContent = info.name;
-    document.getElementById('popup-val').textContent = value || '—';
-    document.getElementById('popup-val').className = 'popup-her-val' + (isTeal ? ' teal' : '');
-    document.getElementById('popup-plain').textContent = info.plain;
-    document.getElementById('popup-example').textContent = info.example;
-    document.getElementById('popup-example').className = 'popup-example' + (isTeal ? ' teal' : '');
-    overlay.classList.add('open');
-    document.getElementById('popup-close').focus();
-  }
-
-  function closePopup() {
-    document.getElementById('popup-overlay').classList.remove('open');
-  }
-
-  document.getElementById('popup-close').addEventListener('click', closePopup);
-  document.getElementById('popup-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closePopup(); });
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
-
-  // Wire up stat cards
-  document.querySelectorAll('.stat-card').forEach(card => {
-    const label = card.querySelector('.stat-card-label')?.textContent?.trim();
-    const value = card.querySelector('.stat-card-value')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
-    }
-  });
-
-  // Wire up advanced cards
-  document.querySelectorAll('.adv-card').forEach(card => {
-    const label = card.querySelector('.adv-card-label')?.textContent?.trim();
-    const value = card.querySelector('.adv-card-value')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
-    }
-  });
-
-  // Wire up gauge cards
-  document.querySelectorAll('.gauge-card').forEach(card => {
-    const label = card.querySelector('.gauge-label')?.textContent?.trim();
-    const value = card.querySelector('.gauge-big')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value); });
-    }
-  });
-
-  // Wire up table column headers
-  document.querySelectorAll('thead th').forEach(th => {
-    const key = th.textContent.trim();
-    if (STAT_INFO[key]) {
-      th.setAttribute('data-key', key);
-      th.setAttribute('title', STAT_INFO[key].name);
-      th.addEventListener('click', () => openPopup(key, null));
-    }
-  });
+            example:'💡 Zoe\'s 96%+ rate means she almost never gets thrown out — she picks her spots perfectly.' },
 
 });
 </script>
