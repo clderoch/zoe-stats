@@ -357,7 +357,7 @@ function calcPitch(games) {
     ha+=g.h_allowed;ra+=g.r_allowed;er+=g.er;bbp+=g.bb_p;k+=g.k;hbpp+=g.hbp_p;lob+=g.lob;
     sb+=g.sb_p||0;cs+=g.cs_p||0;
   }
-  const era=ipD>0?(er/ipD)*7:0;   // 7-inning game standard for softball
+  const era=ipD>0?(er/ipD)*6:0;   // 6-inning game standard for 10U softball
   const whip=ipD>0?(bbp+ha)/ipD:0;
   const k9=ipD>0?(k/ipD)*9:0;
   const bb9=ipD>0?(bbp/ipD)*9:0;
@@ -554,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pBody = document.getElementById('pitch-tbody');
   PITCHING.forEach(g => {
     const ipd = ipToD(g.ip);
-    const era = ipd>0?(g.er/ipd)*7:0;
+    const era = ipd>0?(g.er/ipd)*6:0;
     const whip = ipd>0?(g.bb_p+g.h_allowed)/ipd:0;
     const k9 = ipd>0?(g.k/ipd)*9:0;
     const ppi = ipd>0?g.pitches/ipd:0;
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const eraD=[],whipD=[],lblP=[];
   PITCHING.forEach((g,i)=>{
     cipD+=ipToD(g.ip);cER+=g.er;cBBP+=g.bb_p;cHA+=g.h_allowed;
-    eraD.push(cipD>0?+(cER/cipD*7).toFixed(2):0);
+    eraD.push(cipD>0?+(cER/cipD*6).toFixed(2):0);
     whipD.push(cipD>0?+((cBBP+cHA)/cipD).toFixed(3):0);
     lblP.push(i+1);
   });
@@ -812,8 +812,8 @@ document.addEventListener('DOMContentLoaded', () => {
             example:'💡 Leaving runners stranded is a skill — it means she gets big outs when the pressure is on.' },
     // ── PITCHING ADVANCED ──
     ERA:  { name:'Earned Run Average', color:'teal',
-            plain:'The most important pitching stat: how many earned runs would she allow per full game (7 innings in softball)? Lower is much better.',
-            example:'💡 Formula: (ER × 7) ÷ IP. Below 2.00 is elite. Zoe\'s 2.66 is very strong.' },
+            plain:'The most important pitching stat: how many earned runs would she allow per full game (6 innings in 10U softball)? Lower is much better.',
+            example:'💡 Formula: (ER × 6) ÷ IP. Below 2.00 is elite. Zoe\'s 2.66 is very strong.' },
     WHIP: { name:'Walks + Hits Per Inning', color:'teal',
             plain:'Adds up walks and hits allowed, then divides by innings pitched. Shows how many baserunners Zoe allows per inning. Lower = fewer runners, more dominant.',
             example:'💡 Below 1.00 is excellent. Below 1.50 is solid. Zoe\'s 1.43 is respectable for her workload.' },
