@@ -14,6 +14,9 @@
 //  SEASONS (bottom of file) lists each season shown in the season
 //  switcher. Spring 2026 uses GAMES / PITCHING; Fall 2026 uses
 //  FALL_GAMES / FALL_PITCHING. Same fields for both.
+//
+//  Add scrim:true to a scrimmage game; the page's "No Scrimmages"
+//  filter leaves those games out of every total, chart, and log.
 // ============================================================
 
 const PLAYER = {
@@ -99,11 +102,11 @@ const PITCHING = [
 
 // ── FALL 2026 · INTENSITY 12U McGRATH ──────────────────────────
 const FALL_GAMES = [
-  { date: "2026-09-18", opponent: "Idaho Show Black 12U (Scrim)",   pa:3, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:1, hbp:1, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-18", opponent: "Idaho Show Black 12U (Scrim)", scrim:true,   pa:3, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:1, hbp:1, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-09-27", opponent: "Idaho Reign-12U Noell",          pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-09-27", opponent: "Boise Blast Crespin 12U",        pa:2, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-09-27", opponent: "East Boise Select 12U",          pa:2, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
-  { date: "2026-09-30", opponent: "Idaho Show Orange 12U (Scrim)",  pa:2, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-30", opponent: "Idaho Show Orange 12U (Scrim)", scrim:true,  pa:2, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-10-03", opponent: "Idaho Rampage 12u Denton",       pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-10-03", opponent: "12u Rural 208",                  pa:3, ab:3, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:2, cs:0 },
   { date: "2026-10-03", opponent: "12u Rural 208 (2)",              pa:3, ab:3, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:2, r:1, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
@@ -122,7 +125,7 @@ const FALL_GAMES = [
 ];
 
 const FALL_PITCHING = [
-  { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", ip:1.0, gs:0, bf:3,  pitches:11, w:0, l:0, sv:0, h_allowed:1, r_allowed:0, er:0, bb_p:0, k:1, hbp_p:0, lob:0, bk:0, pik:0, cs_p:1, sb_p:0 },
+  { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", scrim:true, ip:1.0, gs:0, bf:3,  pitches:11, w:0, l:0, sv:0, h_allowed:1, r_allowed:0, er:0, bb_p:0, k:1, hbp_p:0, lob:0, bk:0, pik:0, cs_p:1, sb_p:0 },
   { date:"2026-09-27", opponent:"East Boise Select 12U",        ip:3.2, gs:0, bf:21, pitches:85, w:0, l:0, sv:0, h_allowed:5, r_allowed:4, er:4, bb_p:4, k:7, hbp_p:1, lob:6, bk:0, pik:0, cs_p:0, sb_p:6 },
   { date:"2026-10-03", opponent:"Idaho Rampage 12u Denton",     ip:6.0, gs:1, bf:23, pitches:77, w:1, l:0, sv:0, h_allowed:4, r_allowed:1, er:1, bb_p:1, k:8, hbp_p:0, lob:4, bk:0, pik:0, cs_p:1, sb_p:1 },
   { date:"2026-10-10", opponent:"Bandits - NBR Select 12U",     ip:4.1, gs:0, bf:19, pitches:64, w:1, l:0, sv:0, h_allowed:2, r_allowed:1, er:1, bb_p:4, k:6, hbp_p:0, lob:5, bk:0, pik:0, cs_p:0, sb_p:0 },
@@ -132,7 +135,9 @@ const FALL_PITCHING = [
 ];
 
 // GameChanger "Pitching → Advanced" tab, copied exactly as shown (null = "-").
-// Percentages are 0–100. totals is GameChanger's Totals row. Like GameChanger,
+// Percentages are 0–100. totals is the Totals row from Zoe's player page, which
+// includes scrimmages. officialTotals (optional) is the same row with scrimmages
+// left out, from the team Stats page; the "No Scrimmages" filter uses it. Like GameChanger,
 // babip and barisp on each game row are season-to-date, not that game alone.
 //   pip P/IP · pbf P/BF · lbfp LBFP# · lt3 <3% · loo LOO · first2out 1ST2OUT · inn123 123INN
 //   lt13 <13 · fip FIP · s S% · fps FPS% · fpso FPSO% · fpsw FPSW% · fpsh FPSH%
@@ -143,7 +148,7 @@ const FALL_PITCHING_ADV = {
   totals:
     { ip:23.1, bf:114, pip:17.3, pbf:3.544, lbfp:null, lt3:48.25, loo:14, first2out:8, inn123:5, lt13:10, fip:3.045, s:59.65, fps:58.77, fpso:58.21, fpsw:8.96,  fpsh:31.34, bbinn:.771,  zerobbinn:11, bbs:5, lobb:3, lobbs:2, sm:12.38, kbf:.289, kbb:1.833, weak:77.05, hhb:22.95, goao:.611,  hr:1, ld:16.39, fb:36.07, gb:44.83, babip:.483, barisp:.359 },
   games: [
-    { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", ip:1.0, bf:3,  pip:11.0, pbf:3.667, lbfp:3,  lt3:66.67, loo:0, first2out:0, inn123:0, lt13:1, fip:1.680, s:72.73, fps:66.67, fpso:50.00, fpsw:0.00,  fpsh:50.00, bbinn:.000,  zerobbinn:1, bbs:0, lobb:0, lobbs:0, sm:9.09,  kbf:.333, kbb:null,  weak:100.0, hhb:0.00,  goao:.000,  hr:0, ld:0.00,  fb:50.00, gb:50.00, babip:.500, barisp:null },
+    { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", scrim:true, ip:1.0, bf:3,  pip:11.0, pbf:3.667, lbfp:3,  lt3:66.67, loo:0, first2out:0, inn123:0, lt13:1, fip:1.680, s:72.73, fps:66.67, fpso:50.00, fpsw:0.00,  fpsh:50.00, bbinn:.000,  zerobbinn:1, bbs:0, lobb:0, lobbs:0, sm:9.09,  kbf:.333, kbb:null,  weak:100.0, hhb:0.00,  goao:.000,  hr:0, ld:0.00,  fb:50.00, gb:50.00, babip:.500, barisp:null },
     { date:"2026-09-27", opponent:"East Boise Select 12U",        ip:3.2, bf:21, pip:23.2, pbf:4.048, lbfp:82, lt3:23.81, loo:3, first2out:0, inn123:0, lt13:0, fip:2.564, s:54.12, fps:52.38, fpso:36.36, fpsw:18.18, fpsh:45.45, bbinn:1.091, zerobbinn:0, bbs:1, lobb:0, lobbs:0, sm:10.59, kbf:.333, kbb:1.750, weak:100.0, hhb:0.00,  goao:1.000, hr:0, ld:0.00,  fb:55.56, gb:37.50, babip:.545, barisp:.286 },
     { date:"2026-10-03", opponent:"Idaho Rampage 12u Denton",     ip:6.0, bf:23, pip:12.8, pbf:3.348, lbfp:76, lt3:52.17, loo:4, first2out:3, inn123:3, lt13:4, fip:1.500, s:70.13, fps:69.57, fpso:75.00, fpsw:6.25,  fpsh:18.75, bbinn:.167,  zerobbinn:5, bbs:0, lobb:1, lobbs:0, sm:16.88, kbf:.348, kbb:8.000, weak:92.86, hhb:7.14,  goao:.500,  hr:0, ld:7.14,  fb:50.00, gb:38.46, babip:.400, barisp:.235 },
     { date:"2026-10-10", opponent:"Bandits - NBR Select 12U",     ip:4.1, bf:19, pip:14.8, pbf:3.368, lbfp:61, lt3:57.89, loo:3, first2out:2, inn123:2, lt13:2, fip:3.051, s:59.38, fps:63.16, fpso:91.67, fpsw:8.33,  fpsh:0.00,  bbinn:.923,  zerobbinn:2, bbs:1, lobb:1, lobbs:1, sm:20.31, kbf:.316, kbb:1.500, weak:77.78, hhb:22.22, goao:1.000, hr:0, ld:11.11, fb:22.22, gb:66.67, babip:.353, barisp:.200 },
