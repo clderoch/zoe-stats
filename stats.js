@@ -99,13 +99,40 @@ const PITCHING = [
 
 // ── FALL 2026 · INTENSITY 12U McGRATH ──────────────────────────
 const FALL_GAMES = [
+  { date: "2026-09-18", opponent: "Idaho Show Black 12U (Scrim)",   pa:3, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:1, hbp:1, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-27", opponent: "Idaho Reign-12U Noell",          pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-27", opponent: "Boise Blast Crespin 12U",        pa:2, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-27", opponent: "East Boise Select 12U",          pa:2, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-09-30", opponent: "Idaho Show Orange 12U (Scrim)",  pa:2, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-03", opponent: "Idaho Rampage 12u Denton",       pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-03", opponent: "12u Rural 208",                  pa:3, ab:3, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:2, cs:0 },
+  { date: "2026-10-03", opponent: "12u Rural 208 (2)",              pa:3, ab:3, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:2, r:1, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-03", opponent: "Blacksheep - Fletcher",          pa:2, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-04", opponent: "Blacksheep - Fletcher",          pa:3, ab:3, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:0, r:2, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-10", opponent: "Idaho Rampage 12u Denton",       pa:4, ab:4, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-10", opponent: "Idaho Show 12U Teal",            pa:4, ab:4, h:4, singles:3, doubles:1, triples:0, hr:0, rbi:2, r:2, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:1, cs:0 },
+  { date: "2026-10-10", opponent: "Bandits - NBR Select 12U",       pa:3, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-11", opponent: "Idaho Reign-12U Noell",          pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-16", opponent: "Blast- Cox 12U",                 pa:2, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-17", opponent: "Idaho Rampage 12u Denton",       pa:3, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:2, r:0, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-17", opponent: "TBD",                            pa:2, ab:2, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:1, cs:0 },
+  { date: "2026-10-17", opponent: "Idaho Show 12U Teal",            pa:3, ab:3, h:1, singles:0, doubles:0, triples:1, hr:0, rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-18", opponent: "Idaho Rampage 12u Denton",       pa:3, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-18", opponent: "Idaho Show Orange 12U",          pa:3, ab:2, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:3, r:1, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
 ];
 
 const FALL_PITCHING = [
+  { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", ip:1.0, gs:0, bf:3,  pitches:11, w:0, l:0, sv:0, h_allowed:1, r_allowed:0, er:0, bb_p:0, k:1, hbp_p:0, lob:0, bk:0, pik:0, cs_p:1, sb_p:0 },
+  { date:"2026-09-27", opponent:"East Boise Select 12U",        ip:3.2, gs:0, bf:21, pitches:85, w:0, l:0, sv:0, h_allowed:5, r_allowed:4, er:4, bb_p:4, k:7, hbp_p:1, lob:6, bk:0, pik:0, cs_p:0, sb_p:6 },
+  { date:"2026-10-03", opponent:"Idaho Rampage 12u Denton",     ip:6.0, gs:1, bf:23, pitches:77, w:1, l:0, sv:0, h_allowed:4, r_allowed:1, er:1, bb_p:1, k:8, hbp_p:0, lob:4, bk:0, pik:0, cs_p:1, sb_p:1 },
+  { date:"2026-10-10", opponent:"Bandits - NBR Select 12U",     ip:4.1, gs:0, bf:19, pitches:64, w:1, l:0, sv:0, h_allowed:2, r_allowed:1, er:1, bb_p:4, k:6, hbp_p:0, lob:5, bk:0, pik:0, cs_p:0, sb_p:0 },
+  { date:"2026-10-11", opponent:"Idaho Reign-12U Noell",        ip:4.1, gs:1, bf:23, pitches:92, w:0, l:0, sv:0, h_allowed:9, r_allowed:7, er:7, bb_p:4, k:5, hbp_p:0, lob:3, bk:0, pik:0, cs_p:0, sb_p:12 },
+  { date:"2026-10-17", opponent:"Idaho Rampage 12u Denton",     ip:3.0, gs:1, bf:17, pitches:47, w:0, l:0, sv:0, h_allowed:6, r_allowed:5, er:5, bb_p:3, k:4, hbp_p:0, lob:3, bk:0, pik:0, cs_p:1, sb_p:4 },
+  { date:"2026-10-18", opponent:"Idaho Show Orange 12U",        ip:1.0, gs:0, bf:8,  pitches:28, w:0, l:0, sv:0, h_allowed:3, r_allowed:2, er:2, bb_p:2, k:2, hbp_p:0, lob:3, bk:0, pik:0, cs_p:0, sb_p:0 },
 ];
 
-// innings = regulation game length, used for ERA (6 for 10U, 7 for 12U)
+// innings = regulation game length used for ERA; 6 for both seasons to match GameChanger
 const SEASONS = [
   { id:"spring-2026", label:"Spring 2026", team:"10U Fastpitch",         innings:6, games:GAMES,      pitching:PITCHING },
-  { id:"fall-2026",   label:"Fall 2026",   team:"Intensity 12U McGrath", innings:7, games:FALL_GAMES, pitching:FALL_PITCHING },
+  { id:"fall-2026",   label:"Fall 2026",   team:"Intensity 12U McGrath", innings:6, games:FALL_GAMES, pitching:FALL_PITCHING },
 ];
