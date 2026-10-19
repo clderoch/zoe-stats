@@ -643,14 +643,31 @@ document.addEventListener('DOMContentLoaded', () => {
     </tr>`;
 
     // ══════════ BATTING CHARTS ══════════
-    const chartOpts = {
-      responsive:true,
-      plugins:{legend:{labels:{color:'#8a9bb0',font:{family:'Inter',size:11}}}},
-      scales:{
-        x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
-        y:{ticks:{color:'#8a9bb0',font:{size:10}},grid:{color:'#1e2f42'}}
-      }
-    };
+    // Shared chart options: axis titles, and tooltips that name the game's date + opponent.
+    // noun = 'Game' or 'Outing'; fmt formats y values; int = whole-number y ticks
+    const axisTitle = (text, color='#8a9bb0') => ({display:true,text,color,font:{family:'Inter',size:10}});
+    function chartOpts(list, noun, yLabel, {fmt, int}={}) {
+      return {
+        responsive:true,
+        interaction:{mode:'index',intersect:false},
+        elements:{line:{cubicInterpolationMode:'monotone'}},  // smooth curves without overshooting the data
+        plugins:{
+          legend:{labels:{color:'#8a9bb0',font:{family:'Inter',size:11}}},
+          tooltip:{callbacks:{
+            title:items => {
+              const i=items[0].dataIndex, g=list[i];
+              const ds=new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+              return `${noun} ${i+1} · ${ds} vs ${g.opponent}`;
+            },
+            ...(fmt ? {label:ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`} : {}),
+          }},
+        },
+        scales:{
+          x:{title:axisTitle(`${noun} #`),ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
+          y:{title:axisTitle(yLabel),ticks:{color:'#8a9bb0',font:{size:10},...(fmt?{callback:fmt}:{}),...(int?{precision:0}:{})},grid:{color:'#1e2f42'}},
+        },
+      };
+    }
 
     // Cumulative AVG/OBP/OPS
     let cAB=0,cH=0,cBB=0,cHBP=0,cSF=0,cTB=0;
@@ -668,18 +685,18 @@ document.addEventListener('DOMContentLoaded', () => {
       {label:'AVG',data:avgD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
       {label:'OBP',data:obpD2,borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
       {label:'OPS',data:opsD,borderColor:'#8a9bb0',backgroundColor:'rgba(138,155,176,.08)',pointRadius:2,tension:.3},
-    ]},options:chartOpts});
+    ]},options:chartOpts(GAMES,'Game','Season-to-date AVG / OBP / OPS',{fmt:fmt3})});
 
     new Chart(document.getElementById('rbiChart'),{type:'bar',data:{labels:GAMES.map((_,i)=>i+1),datasets:[
       {label:'RBI',data:GAMES.map(g=>g.rbi),backgroundColor:'#f5c842'},
       {label:'R',  data:GAMES.map(g=>g.r),  backgroundColor:'rgba(217,79,61,.7)'},
-    ]},options:{...chartOpts}});
+    ]},options:chartOpts(GAMES,'Game','Count in that game',{int:true})});
 
     let cumSB=0;
     new Chart(document.getElementById('sbChart'),{type:'line',data:{labels:lblB,datasets:[
       {label:'Stolen Bases',data:GAMES.map(g=>{cumSB+=g.sb;return cumSB;}),
-       borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.12)',pointRadius:2,fill:true,tension:.3}
-    ]},options:chartOpts});
+       borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.12)',pointRadius:2,fill:true,stepped:true}
+    ]},options:chartOpts(GAMES,'Game','Total stolen bases so far',{int:true})});
 
     const kR=[],bbR=[];
     for(let i=0;i<GAMES.length;i++){
@@ -691,10 +708,9 @@ document.addEventListener('DOMContentLoaded', () => {
     new Chart(document.getElementById('kbbChart'),{type:'line',data:{labels:lblB,datasets:[
       {label:'K%', data:kR, borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
       {label:'BB%',data:bbR,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
-    ]},options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>v+'%'}}}}});
+    ]},options:chartOpts(GAMES,'Game','% of plate appearances (last 5 games)',{fmt:v=>v+'%'})});
 
     // ══════════ PITCHING CHARTS ══════════
-    const pitchChartOpts = {...chartOpts};
 
     // Cumulative ERA & WHIP
     let cipD=0,cER=0,cBBP=0,cHA=0;
@@ -708,22 +724,23 @@ document.addEventListener('DOMContentLoaded', () => {
     new Chart(document.getElementById('eraChart'),{type:'line',data:{labels:lblP,datasets:[
       {label:'ERA', data:eraD, borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.08)',pointRadius:3,tension:.3},
       {label:'WHIP',data:whipD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:3,tension:.3,yAxisID:'y2'},
-    ]},options:{...pitchChartOpts,scales:{
-      x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
-      y:{ticks:{color:'#38b2ac',font:{size:10}},grid:{color:'#1e2f42'},title:{display:true,text:'ERA',color:'#38b2ac',font:{size:10}}},
-      y2:{position:'right',ticks:{color:'#f5c842',font:{size:10}},grid:{drawOnChartArea:false},title:{display:true,text:'WHIP',color:'#f5c842',font:{size:10}}},
-    }}});
+    ]},options:(() => {
+      const o = chartOpts(PITCHING,'Outing','');
+      o.scales.y = {ticks:{color:'#38b2ac',font:{size:10}},grid:{color:'#1e2f42'},title:axisTitle('ERA (season-to-date)','#38b2ac')};
+      o.scales.y2 = {position:'right',ticks:{color:'#f5c842',font:{size:10}},grid:{drawOnChartArea:false},title:axisTitle('WHIP (season-to-date)','#f5c842')};
+      return o;
+    })()});
 
     // K per outing bar
     new Chart(document.getElementById('kChart'),{type:'bar',data:{labels:lblP,datasets:[
       {label:'K',data:PITCHING.map(g=>g.k),backgroundColor:PITCHING.map(g=>g.k>=10?'#38b2ac':'rgba(56,178,172,.5)'),borderRadius:2},
-    ]},options:{...pitchChartOpts,plugins:{...pitchChartOpts.plugins,annotation:{}}}});
+    ]},options:chartOpts(PITCHING,'Outing','Strikeouts in that outing',{int:true})});
 
     // Pitches per inning
     new Chart(document.getElementById('pitchEffChart'),{type:'line',data:{labels:lblP,datasets:[
       {label:'Pitches/IP',data:PITCHING.map(g=>{const d=ipToD(g.ip);return d>0?+(g.pitches/d).toFixed(1):0;}),
        borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.1)',pointRadius:3,tension:.3},
-    ]},options:pitchChartOpts});
+    ]},options:chartOpts(PITCHING,'Outing','Pitches per inning (that outing)')});
 
     // Cumulative K9
     let cipD2=0,cK=0;
@@ -731,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
     PITCHING.forEach((g,i)=>{cipD2+=ipToD(g.ip);cK+=g.k;k9D.push(cipD2>0?+(cK/cipD2*9).toFixed(2):0);});
     new Chart(document.getElementById('k9Chart'),{type:'line',data:{labels:lblP,datasets:[
       {label:'K/9',data:k9D,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.12)',pointRadius:3,fill:true,tension:.3},
-    ]},options:pitchChartOpts});
+    ]},options:chartOpts(PITCHING,'Outing','K/9 (season-to-date)')});
 
     wireCards();
   }
