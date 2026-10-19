@@ -131,8 +131,31 @@ const FALL_PITCHING = [
   { date:"2026-10-18", opponent:"Idaho Show Orange 12U",        ip:1.0, gs:0, bf:8,  pitches:28, w:0, l:0, sv:0, h_allowed:3, r_allowed:2, er:2, bb_p:2, k:2, hbp_p:0, lob:3, bk:0, pik:0, cs_p:0, sb_p:0 },
 ];
 
+// GameChanger "Pitching → Advanced" tab, copied exactly as shown (null = "-").
+// Percentages are 0–100. totals is GameChanger's Totals row. Like GameChanger,
+// babip and barisp on each game row are season-to-date, not that game alone.
+//   pip P/IP · pbf P/BF · lbfp LBFP# · lt3 <3% · loo LOO · first2out 1ST2OUT · inn123 123INN
+//   lt13 <13 · fip FIP · s S% · fps FPS% · fpso FPSO% · fpsw FPSW% · fpsh FPSH%
+//   bbinn BB/INN · zerobbinn 0BBINN · bbs BBS · lobb LOBB · lobbs LOBBS · sm SM%
+//   kbf K/BF · kbb K/BB · weak WEAK% · hhb HHB% · goao GO/AO · hr HR · ld LD% · fb FB% · gb GB%
+//   babip BABIP · barisp BA/RISP
+const FALL_PITCHING_ADV = {
+  totals:
+    { ip:23.1, bf:114, pip:17.3, pbf:3.544, lbfp:null, lt3:48.25, loo:14, first2out:8, inn123:5, lt13:10, fip:3.045, s:59.65, fps:58.77, fpso:58.21, fpsw:8.96,  fpsh:31.34, bbinn:.771,  zerobbinn:11, bbs:5, lobb:3, lobbs:2, sm:12.38, kbf:.289, kbb:1.833, weak:77.05, hhb:22.95, goao:.611,  hr:1, ld:16.39, fb:36.07, gb:44.83, babip:.483, barisp:.359 },
+  games: [
+    { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)", ip:1.0, bf:3,  pip:11.0, pbf:3.667, lbfp:3,  lt3:66.67, loo:0, first2out:0, inn123:0, lt13:1, fip:1.680, s:72.73, fps:66.67, fpso:50.00, fpsw:0.00,  fpsh:50.00, bbinn:.000,  zerobbinn:1, bbs:0, lobb:0, lobbs:0, sm:9.09,  kbf:.333, kbb:null,  weak:100.0, hhb:0.00,  goao:.000,  hr:0, ld:0.00,  fb:50.00, gb:50.00, babip:.500, barisp:null },
+    { date:"2026-09-27", opponent:"East Boise Select 12U",        ip:3.2, bf:21, pip:23.2, pbf:4.048, lbfp:82, lt3:23.81, loo:3, first2out:0, inn123:0, lt13:0, fip:2.564, s:54.12, fps:52.38, fpso:36.36, fpsw:18.18, fpsh:45.45, bbinn:1.091, zerobbinn:0, bbs:1, lobb:0, lobbs:0, sm:10.59, kbf:.333, kbb:1.750, weak:100.0, hhb:0.00,  goao:1.000, hr:0, ld:0.00,  fb:55.56, gb:37.50, babip:.545, barisp:.286 },
+    { date:"2026-10-03", opponent:"Idaho Rampage 12u Denton",     ip:6.0, bf:23, pip:12.8, pbf:3.348, lbfp:76, lt3:52.17, loo:4, first2out:3, inn123:3, lt13:4, fip:1.500, s:70.13, fps:69.57, fpso:75.00, fpsw:6.25,  fpsh:18.75, bbinn:.167,  zerobbinn:5, bbs:0, lobb:1, lobbs:0, sm:16.88, kbf:.348, kbb:8.000, weak:92.86, hhb:7.14,  goao:.500,  hr:0, ld:7.14,  fb:50.00, gb:38.46, babip:.400, barisp:.235 },
+    { date:"2026-10-10", opponent:"Bandits - NBR Select 12U",     ip:4.1, bf:19, pip:14.8, pbf:3.368, lbfp:61, lt3:57.89, loo:3, first2out:2, inn123:2, lt13:2, fip:3.051, s:59.38, fps:63.16, fpso:91.67, fpsw:8.33,  fpsh:0.00,  bbinn:.923,  zerobbinn:2, bbs:1, lobb:1, lobbs:1, sm:20.31, kbf:.316, kbb:1.500, weak:77.78, hhb:22.22, goao:1.000, hr:0, ld:11.11, fb:22.22, gb:66.67, babip:.353, barisp:.200 },
+    { date:"2026-10-11", opponent:"Idaho Reign-12U Noell",        ip:4.1, bf:23, pip:21.2, pbf:4.000, lbfp:88, lt3:43.48, loo:3, first2out:2, inn123:0, lt13:1, fip:3.425, s:54.35, fps:34.78, fpso:25.00, fpsw:0.00,  fpsh:75.00, bbinn:.923,  zerobbinn:2, bbs:2, lobb:0, lobbs:0, sm:9.78,  kbf:.217, kbb:1.250, weak:78.57, hhb:21.43, goao:.667,  hr:0, ld:21.43, fb:28.57, gb:50.00, babip:.438, barisp:.250 },
+    { date:"2026-10-17", opponent:"Idaho Rampage 12u Denton",     ip:3.0, bf:17, pip:15.7, pbf:2.765, lbfp:47, lt3:70.59, loo:1, first2out:1, inn123:0, lt13:2, fip:6.180, s:61.70, fps:76.47, fpso:61.54, fpsw:7.69,  fpsh:30.77, bbinn:1.000, zerobbinn:1, bbs:1, lobb:1, lobbs:1, sm:2.13,  kbf:.235, kbb:1.333, weak:33.33, hhb:66.67, goao:.000,  hr:1, ld:44.44, fb:33.33, gb:22.22, babip:.456, barisp:.324 },
+    { date:"2026-10-18", opponent:"Idaho Show Orange 12U",        ip:1.0, bf:8,  pip:28.0, pbf:3.500, lbfp:24, lt3:37.50, loo:0, first2out:0, inn123:0, lt13:0, fip:4.380, s:57.14, fps:62.50, fpso:20.00, fpsw:20.00, fpsh:40.00, bbinn:2.000, zerobbinn:0, bbs:0, lobb:0, lobbs:0, sm:14.29, kbf:.250, kbb:1.000, weak:50.00, hhb:50.00, goao:null,  hr:0, ld:25.00, fb:0.00,  gb:66.67, babip:.483, barisp:.359 },
+  ],
+};
+
 // innings = regulation game length used for ERA; 6 for both seasons to match GameChanger
+// pitchingAdv (optional) = GameChanger advanced pitching tab; the section is hidden without it
 const SEASONS = [
   { id:"spring-2026", label:"Spring 2026", team:"10U Fastpitch",         innings:6, games:GAMES,      pitching:PITCHING },
-  { id:"fall-2026",   label:"Fall 2026",   team:"Intensity 12U McGrath", innings:6, games:FALL_GAMES, pitching:FALL_PITCHING },
+  { id:"fall-2026",   label:"Fall 2026",   team:"Intensity 12U McGrath", innings:6, games:FALL_GAMES, pitching:FALL_PITCHING, pitchingAdv:FALL_PITCHING_ADV },
 ];

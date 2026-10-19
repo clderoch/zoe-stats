@@ -137,6 +137,9 @@
     tfoot.teal-foot td { color:var(--teal); }
     tfoot td:first-child, tfoot td:nth-child(2) { text-align:left; color:var(--slate); }
 
+    .adv-group-title { font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); margin-bottom:.75rem; }
+    .table-note { font-size:.7rem; color:var(--slate); margin:-1.75rem 0 2.5rem; }
+
     /* K9 GAUGE */
     .gauge-row { display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:2rem; }
     .gauge-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.25rem 1.5rem; flex:1; min-width:160px; text-align:center; }
@@ -284,6 +287,24 @@
     <div class="gauge-row" id="gauge-row"></div>
     <div class="advanced-grid" id="padv-grid"></div>
 
+    <div id="gc-adv-section">
+      <hr class="divider">
+      <div class="section-label teal">GameChanger Advanced</div>
+      <div class="section-title">Pitch-by-Pitch Breakdown</div>
+      <div id="gc-adv-groups"></div>
+
+      <div class="section-label teal">Game Log</div>
+      <div class="section-title">Advanced — By Outing</div>
+      <div class="table-wrap">
+        <table id="gc-adv-log">
+          <thead class="teal-head"><tr id="gc-adv-head"></tr></thead>
+          <tbody id="gc-adv-tbody"></tbody>
+          <tfoot class="teal-foot" id="gc-adv-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="table-note">BABIP and BA/RISP on each row are season-to-date, the same way GameChanger shows them.</div>
+    </div>
+
     <hr class="divider">
     <div class="section-label teal">Trends</div>
     <div class="section-title">Pitching Progression</div>
@@ -390,6 +411,79 @@ function calcPitch(games, innings) {
           era,whip,k9,bb9,kbb,ppi,kpct,bbpct};
 }
 
+// ─── GAMECHANGER ADVANCED PITCHING ──────────────────────────
+// Values are copied from GameChanger (see FALL_PITCHING_ADV in stats.js), only formatted here
+const GC_FMT = {
+  pct: n => n.toFixed(1)+'%',
+  avg: fmt3,
+  d1:  n => n.toFixed(1),
+  d2:  n => n.toFixed(2),
+  d3:  n => n.toFixed(3),
+  int: n => String(n),
+};
+// Table columns, in GameChanger's order
+const GC_ADV_COLS = [
+  {key:'ip',label:'IP',fmt:'d1'},        {key:'bf',label:'BF',fmt:'int'},
+  {key:'pip',label:'P/IP',fmt:'d1'},     {key:'pbf',label:'P/BF',fmt:'d2'},      {key:'lbfp',label:'LBFP#',fmt:'int'},
+  {key:'lt3',label:'<3%',fmt:'pct'},     {key:'loo',label:'LOO',fmt:'int'},      {key:'first2out',label:'1ST2OUT',fmt:'int'},
+  {key:'inn123',label:'123INN',fmt:'int'},{key:'lt13',label:'<13',fmt:'int'},    {key:'fip',label:'FIP',fmt:'d3'},
+  {key:'s',label:'S%',fmt:'pct'},        {key:'fps',label:'FPS%',fmt:'pct'},     {key:'fpso',label:'FPSO%',fmt:'pct'},
+  {key:'fpsw',label:'FPSW%',fmt:'pct'},  {key:'fpsh',label:'FPSH%',fmt:'pct'},   {key:'bbinn',label:'BB/INN',fmt:'avg'},
+  {key:'zerobbinn',label:'0BBINN',fmt:'int'},{key:'bbs',label:'BBS',fmt:'int'},  {key:'lobb',label:'LOBB',fmt:'int'},
+  {key:'lobbs',label:'LOBBS',fmt:'int'}, {key:'sm',label:'SM%',fmt:'pct'},       {key:'kbf',label:'K/BF',fmt:'avg'},
+  {key:'kbb',label:'K/BB',fmt:'d2'},     {key:'weak',label:'WEAK%',fmt:'pct'},   {key:'hhb',label:'HHB%',fmt:'pct'},
+  {key:'goao',label:'GO/AO',fmt:'avg'},  {key:'hr',label:'HR',fmt:'int'},        {key:'ld',label:'LD%',fmt:'pct'},
+  {key:'fb',label:'FB%',fmt:'pct'},      {key:'gb',label:'GB%',fmt:'pct'},       {key:'babip',label:'BABIP',fmt:'avg'},
+  {key:'barisp',label:'BA/RISP',fmt:'avg'},
+];
+const GC_COL = Object.fromEntries(GC_ADV_COLS.map(c => [c.key, c]));
+function gcFmt(key, v) { return v===null||v===undefined ? '—' : GC_FMT[GC_COL[key].fmt](v); }
+// Season card groups: [key, short description]
+const GC_ADV_GROUPS = [
+  {title:'Throwing Strikes', cards:[
+    ['s','Share of all her pitches that were strikes'],
+    ['fps','Batters who got strike one on the first pitch'],
+    ['sm','Pitches that got a swing and miss'],
+    ['lt3','Batters done (out or on base) within 3 pitches'],
+    ['pbf','Pitches per batter faced'],
+    ['pip','Pitches per inning'],
+  ]},
+  {title:'After a First-Pitch Strike', cards:[
+    ['fpso','Of those batters, how many made an out'],
+    ['fpsw','Of those batters, how many still walked'],
+    ['fpsh','Of those batters, how many got a hit'],
+  ]},
+  {title:'Clean Innings', cards:[
+    ['inn123','1-2-3 innings: three up, three down'],
+    ['lt13','Innings finished in 13 pitches or fewer'],
+    ['zerobbinn','Innings with zero walks'],
+    ['loo','Innings where the leadoff batter made an out'],
+    ['first2out','Innings where the first two batters made outs'],
+  ]},
+  {title:'Walks', cards:[
+    ['bbinn','Walks per inning'],
+    ['bbs','Walked batters who later scored'],
+    ['lobb','Innings that started with a walk'],
+    ['lobbs','Leadoff walks that came around to score'],
+  ]},
+  {title:'Contact Allowed', cards:[
+    ['weak','Batted balls hit weakly (soft flies & grounders)'],
+    ['hhb','Batted balls hit hard (line drives & hard grounders)'],
+    ['gb','Batted balls on the ground'],
+    ['fb','Batted balls in the air'],
+    ['ld','Batted balls that were line drives'],
+    ['goao','Ground-ball outs per fly-ball out'],
+    ['babip','Opponent average when they put it in play'],
+    ['barisp','Opponent average with runners on 2nd or 3rd'],
+    ['hr','Home runs allowed'],
+  ]},
+  {title:'Overall', cards:[
+    ['fip','ERA-style score from only K, BB, HBP and HR'],
+    ['kbf','Strikeouts per batter faced'],
+    ['kbb','Strikeouts per walk'],
+  ]},
+];
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   // TABS
@@ -431,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Clear anything a previous season rendered
     ['hero-stats','batting-grid','adv-grid','hit-bar','hit-sparks','bat-tbody',
-     'pitch-grid','gauge-row','padv-grid','pitch-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+     'pitch-grid','gauge-row','padv-grid','pitch-tbody','gc-adv-groups','gc-adv-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
     document.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.destroy());
     document.getElementById('tab-batting').classList.toggle('is-empty', !GAMES.length);
     document.getElementById('tab-pitching').classList.toggle('is-empty', !PITCHING.length);
@@ -606,6 +700,25 @@ document.addEventListener('DOMContentLoaded', () => {
     padvCards.forEach(c => {
       pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
     });
+
+    // GAMECHANGER ADVANCED (only seasons that have it)
+    const adv = season.pitchingAdv;
+    document.getElementById('gc-adv-section').hidden = !adv;
+    if (adv) {
+      const groups = document.getElementById('gc-adv-groups');
+      GC_ADV_GROUPS.forEach(grp => {
+        groups.innerHTML += `<div class="adv-group-title">${grp.title}</div><div class="advanced-grid">${
+          grp.cards.map(([key, desc]) => `<div class="adv-card teal"><div class="adv-card-value">${gcFmt(key, adv.totals[key])}</div><div class="adv-card-label">${GC_COL[key].label.replace('<','&lt;')}</div><div class="adv-card-desc">${desc}</div></div>`).join('')
+        }</div>`;
+      });
+      const advBody = document.getElementById('gc-adv-tbody');
+      adv.games.forEach(g => {
+        const ds = new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        advBody.innerHTML += `<tr><td>${ds}</td><td>${g.opponent}</td>${GC_ADV_COLS.map(c => `<td>${gcFmt(c.key, g[c.key])}</td>`).join('')}</tr>`;
+      });
+      document.getElementById('gc-adv-tfoot').innerHTML =
+        `<tr><td>Season</td><td>Totals</td>${GC_ADV_COLS.map(c => `<td>${gcFmt(c.key, adv.totals[c.key])}</td>`).join('')}</tr>`;
+    }
 
     // PITCHING GAME LOG
     const pBody = document.getElementById('pitch-tbody');
@@ -930,6 +1043,88 @@ document.addEventListener('DOMContentLoaded', () => {
     'ER/G':{ name:'Earned Runs Per Appearance', color:'teal',
              plain:'On average, how many earned runs does Zoe give up each time she takes the mound? Shows her consistency across all outings.',
              example:'💡 Below 1.0 per appearance is excellent. It means she almost always keeps the game close.' },
+    // ── PITCHING · GAMECHANGER ADVANCED ──
+    'S%':    { name:'Strike Percentage', color:'teal',
+               plain:'Out of every pitch Zoe threw, what share were strikes? Called strikes, swinging strikes, fouls, and balls put in play all count as strikes.',
+               example:'💡 Around 60% is solid. Pitchers who live in the zone stay ahead in the count and walk fewer batters.' },
+    'FPS%':  { name:'First-Pitch Strike Percentage', color:'teal',
+               plain:'How often Zoe threw strike one on the very first pitch to a batter. Getting ahead 0-1 puts the hitter on the defensive.',
+               example:'💡 Above 60% is a strong mark. Strike one is the most important pitch of an at bat.' },
+    'SM%':   { name:'Swing & Miss Percentage', color:'teal',
+               plain:'Out of all her pitches, what share did a batter swing at and completely miss? This shows how hard her pitches are to hit.',
+               example:'💡 Above 10% means her stuff is fooling hitters regularly.' },
+    '<3%':   { name:'Batters Done in 3 Pitches or Fewer', color:'teal',
+               plain:'The share of batters whose at bat was over (out, hit, or anything else) within three pitches. Quick at bats keep her pitch count low.',
+               example:'💡 Around 50% or higher means she is attacking hitters instead of nibbling.' },
+    'FPSO%': { name:'Outs After a First-Pitch Strike', color:'teal',
+               plain:'When Zoe threw strike one, how often did that batter end up making an out? Shows how well she finishes once she gets ahead.',
+               example:'💡 Higher is better. This is the payoff for getting ahead in the count.' },
+    'FPSW%': { name:'Walks After a First-Pitch Strike', color:'teal',
+               plain:'When Zoe threw strike one, how often did that batter still end up walking? Lower is better: once she is ahead, she should not give the at bat away.',
+               example:'💡 Under 10% is good. Walking a batter after getting ahead 0-1 is the outcome pitchers most want to avoid.' },
+    'FPSH%': { name:'Hits After a First-Pitch Strike', color:'teal',
+               plain:'When Zoe threw strike one, how often did that batter still get a hit? Lower is better.',
+               example:'💡 Hitters who fall behind 0-1 usually do much worse. A high number can mean she is leaving pitches over the plate after strike one.' },
+    '123INN':{ name:'1-2-3 Innings', color:'teal',
+               plain:'Innings where Zoe faced exactly three batters and got all three out: three up, three down, nobody reaches base.',
+               example:'💡 The cleanest kind of inning a pitcher can throw.' },
+    '<13':   { name:'Innings of 13 Pitches or Fewer', color:'teal',
+               plain:'Innings Zoe finished in 13 pitches or fewer. Efficient innings like these let her stay in the game longer.',
+               example:'💡 A quick inning keeps her defense sharp and her arm fresh.' },
+    '0BBINN':{ name:'Zero-Walk Innings', color:'teal',
+               plain:'Innings where Zoe did not walk a single batter.',
+               example:'💡 Compare this to her innings pitched: the closer the two are, the better her control.' },
+    LOO:     { name:'Leadoff Outs', color:'teal',
+               plain:'Innings where the first batter of the inning made an out. Retiring the leadoff hitter makes it much harder for the other team to score.',
+               example:'💡 Runs score far less often in innings where the leadoff batter is retired.' },
+    '1ST2OUT':{ name:'First Two Batters Out', color:'teal',
+               plain:'Innings where Zoe got both the first and second batters out. With two outs and nobody on, the inning is nearly over.',
+               example:'💡 Getting two quick outs puts the other team in a tough spot.' },
+    'BB/INN':{ name:'Walks Per Inning', color:'teal',
+               plain:'How many walks Zoe gives up in an average inning. Lower is better.',
+               example:'💡 Under .500 (one walk every two innings) shows good control.' },
+    BBS:     { name:'Walks That Scored', color:'teal',
+               plain:'Batters Zoe walked who went on to score a run. Shows how costly her walks were.',
+               example:'💡 Walks hurt most when they turn into runs. Lower is better.' },
+    LOBB:    { name:'Leadoff Walks', color:'teal',
+               plain:'Innings where the first batter of the inning walked. A leadoff walk gives the other team a free runner with nobody out.',
+               example:'💡 Lower is better. Leadoff walks score more often than any other kind.' },
+    LOBBS:   { name:'Leadoff Walks That Scored', color:'teal',
+               plain:'Leadoff walks where that runner came around to score.',
+               example:'💡 Lower is better. Compare to LOBB to see how often those free runners scored.' },
+    'WEAK%': { name:'Weak Contact Percentage', color:'teal',
+               plain:'Out of all balls hit into play against Zoe, what share were hit weakly: soft fly balls and soft ground balls. Weak contact usually means easy outs.',
+               example:'💡 Higher is better for a pitcher. It means hitters are not squaring her up.' },
+    'HHB%':  { name:'Hard-Hit Ball Percentage', color:'teal',
+               plain:'Out of all balls hit into play against Zoe, what share were hit hard: line drives and hard ground balls. These turn into hits most often.',
+               example:'💡 Lower is better for a pitcher.' },
+    'GB%':   { name:'Ground Ball Percentage', color:'teal',
+               plain:'Out of all balls hit into play against Zoe, what share were on the ground.',
+               example:'💡 Ground balls rarely go for extra bases, so many pitchers try to keep the ball down.' },
+    'FB%':   { name:'Fly Ball Percentage', color:'teal',
+               plain:'Out of all balls hit into play against Zoe, what share were hit in the air as fly balls.',
+               example:'💡 Fly balls are often easy outs, but hard-hit ones can go for extra bases.' },
+    'LD%':   { name:'Line Drive Percentage', color:'teal',
+               plain:'Out of all balls hit into play against Zoe, what share were line drives. Line drives are the hardest batted balls to catch.',
+               example:'💡 Lower is better for a pitcher.' },
+    'GO/AO': { name:'Ground Outs to Air Outs', color:'teal',
+               plain:'For every out made on a fly ball or pop-up, how many outs came on ground balls.',
+               example:'💡 Above 1.0 means more ground-ball outs; below 1.0 means more outs in the air. Neither is "better", it describes her style.' },
+    'BA/RISP':{ name:'Opponent Average With Runners in Scoring Position', color:'teal',
+               plain:'The other team\'s batting average against Zoe when a runner was on 2nd or 3rd base. Shows how she pitches under pressure.',
+               example:'💡 Lower is better. A low number means she bears down when a run is about to score.' },
+    FIP:     { name:'Fielding Independent Pitching', color:'teal',
+               plain:'An ERA-style number built only from what the pitcher controls herself: strikeouts, walks, hit batters, and home runs. It ignores how well the defense played behind her.',
+               example:'💡 Read it like ERA (lower is better). If FIP is lower than ERA, her defense or luck has cost her runs.' },
+    'K/BF':  { name:'Strikeouts Per Batter Faced', color:'teal',
+               plain:'The share of batters Zoe struck out, shown as a decimal. .300 means she struck out 3 of every 10 batters.',
+               example:'💡 Above .300 is a strong strikeout rate.' },
+    'K/BB':  { name:'Strikeout-to-Walk Ratio', color:'teal',
+               plain:'How many batters she struck out for every one she walked. Higher is better: it means she dominates AND has control.',
+               example:'💡 Above 2.0 is solid. Above 3.0 is excellent.' },
+    'LBFP#': { name:'Last Batter Faced Pitch Count', color:'teal',
+               plain:'Zoe\'s total pitch count when she threw her last pitch of that game. It shows how deep into her pitch count she went.',
+               example:'💡 Coaches watch this to protect her arm, especially in tournaments with several games in a day.' },
   };
 
   // Overrides for stats whose abbreviation exists in both batting AND pitching
@@ -939,7 +1134,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'R':    { name:'Runs Allowed',     plain:'Total runs that scored while Zoe was pitching, including runs due to errors by her teammates.',                                                       example:'💡 Runs allowed differs from earned runs — defense behind a pitcher matters a lot.' },
     'K%':   { name:'Strikeout Rate (Pitching)', plain:'Out of every batter she faced as a pitcher, what percentage did she strike out? Higher is much better — strikeouts are the most dominant outcome.', example:'💡 Above 30% K rate is elite strikeout ability at any level.' },
     'BB%':  { name:'Walk Rate (Pitching)',      plain:'Out of every batter she faced as a pitcher, what percentage did she walk? Lower is much better — walks are free baserunners.',             example:'💡 Below 10% BB rate shows strong command and strike-throwing ability.' },
-    'K:BB': { name:'K:BB Ratio (Pitching)',     plain:'As a pitcher you want this HIGH. Compares strikeouts to walks. A high ratio means she dominates AND has good control.',                   example:'💡 Above 2.0 is solid. Above 3.0 is excellent. Elite pitchers are 4.0 or higher.' },
+    'BABIP':{ name:'Opponent BABIP',            plain:'When a batter put the ball in play against Zoe (not a strikeout or home run), how often did it become a hit? Depends a lot on her defense and on luck.',  example:'💡 Lower is better for a pitcher. A very high number often means bad luck or tough defense behind her, not bad pitching.' },
+    'HR':   { name:'Home Runs Allowed',         plain:'Home runs hit against Zoe while she was pitching.',                                                                                                    example:'💡 Home runs are rare in youth softball, so even one stands out.' },
+    'K:BB': { name:'K:BB Ratio (Pitching)',    plain:'As a pitcher you want this HIGH. Compares strikeouts to walks. A high ratio means she dominates AND has good control.',                   example:'💡 Above 2.0 is solid. Above 3.0 is excellent. Elite pitchers are 4.0 or higher.' },
   };
 
   function openPopup(key, value, pitchContext) {
@@ -1025,7 +1222,9 @@ document.addEventListener('DOMContentLoaded', () => {
       th.addEventListener('click', () => openPopup(key, null, false));
     }
   });
-  document.querySelectorAll('#pitch-log thead th').forEach(th => {
+  document.getElementById('gc-adv-head').innerHTML =
+    '<th>Date</th><th>Opponent</th>' + GC_ADV_COLS.map(c => `<th>${c.label.replace('<','&lt;')}</th>`).join('');
+  document.querySelectorAll('#pitch-log thead th, #gc-adv-log thead th').forEach(th => {
     const key = th.textContent.trim();
     if (STAT_INFO[key]) {
       th.style.cursor = 'pointer';
