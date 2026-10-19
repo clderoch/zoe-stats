@@ -21,6 +21,8 @@ Open `stats.js` and add a new entry to the `GAMES` array:
   rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:2, cs:0 },
 ```
 
+**Seasons:** Spring 2026 (10U) games go in `GAMES` / `PITCHING`; Fall 2026 (Intensity 12U McGrath) games go in `FALL_GAMES` / `FALL_PITCHING`. The season switcher at the top of the page picks which one is shown, and `index.html#fall-2026` links straight to Fall. Each season's `innings` setting in `SEASONS` sets the ERA game length (6 for 10U, 7 for 12U).
+
 **Field reference:**
 | Field | Description |
 |-------|-------------|

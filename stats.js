@@ -10,13 +10,15 @@
 //    ip (innings pitched as decimal e.g. 5.2), gs (game started 0/1),
 //    bf (batters faced), pitches, w, l, sv, h_allowed, r_allowed,
 //    er, bb_p (walks), k (strikeouts), hbp_p, era, whip, lob, bk, pik, cs_p, sb_p
+//
+//  SEASONS (bottom of file) lists each season shown in the season
+//  switcher. Spring 2026 uses GAMES / PITCHING; Fall 2026 uses
+//  FALL_GAMES / FALL_PITCHING. Same fields for both.
 // ============================================================
 
 const PLAYER = {
   name: "Zoe Derocher",
-  number: 12,
-  team: "10U Fastpitch",
-  season: "2026"
+  number: 12
 };
 
 const GAMES = [
@@ -93,4 +95,17 @@ const PITCHING = [
   { date:"2026-06-19", opponent:"TBD-06/19/26",             ip:4.0, gs:1, bf:13, pitches:58,  w:0, l:0, sv:0, h_allowed:1, r_allowed:0,  er:0, bb_p:1, k:9,  hbp_p:0, lob:1, bk:0, pik:0, cs_p:1, sb_p:1 },
   { date:"2026-06-21", opponent:"MYS 2026 10U Allstars",    ip:4.0, gs:1, bf:13, pitches:52,  w:0, l:0, sv:0, h_allowed:1, r_allowed:0,  er:0, bb_p:0, k:10, hbp_p:0, lob:1, bk:0, pik:0, cs_p:0, sb_p:8 },
   { date:"2026-06-25", opponent:"Kuna Krossfire 10U Select", ip:5.0, gs:1, bf:20, pitches:91,  w:0, l:0, sv:0, h_allowed:3, r_allowed:2,  er:2, bb_p:3, k:14, hbp_p:0, lob:3, bk:0, pik:0, cs_p:1, sb_p:4 },
+];
+
+// ── FALL 2026 · INTENSITY 12U McGRATH ──────────────────────────
+const FALL_GAMES = [
+];
+
+const FALL_PITCHING = [
+];
+
+// innings = regulation game length, used for ERA (6 for 10U, 7 for 12U)
+const SEASONS = [
+  { id:"spring-2026", label:"Spring 2026", team:"10U Fastpitch",         innings:6, games:GAMES,      pitching:PITCHING },
+  { id:"fall-2026",   label:"Fall 2026",   team:"Intensity 12U McGrath", innings:7, games:FALL_GAMES, pitching:FALL_PITCHING },
 ];

@@ -34,6 +34,22 @@
     .player-meta { font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--slate); margin-top:.25rem; }
     .header-number { font-family:'Barlow Condensed',sans-serif; font-size:6rem; font-weight:900; color:var(--border); line-height:1; padding:.5rem 0; align-self:center; user-select:none; }
 
+    [hidden] { display:none!important; }
+
+    /* SEASON SWITCHER */
+    .season-bar { background:var(--navy); border-bottom:1px solid var(--border); padding:.75rem 2rem; display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+    .season-bar-label { font-family:'Barlow Condensed',sans-serif; font-size:.7rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--slate); margin-right:.5rem; }
+    .season-btn { font-family:'Barlow Condensed',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--slate); background:var(--navy2); border:1px solid var(--border); border-radius:999px; padding:.35rem 1rem; cursor:pointer; transition:color .15s,background .15s,border-color .15s; }
+    .season-btn span { font-weight:600; opacity:.75; margin-left:.4rem; }
+    .season-btn:hover { color:var(--white); border-color:var(--muted); }
+    .season-btn.active { background:var(--gold); border-color:var(--gold); color:var(--navy); }
+
+    /* EMPTY SEASON */
+    .tab-pane.is-empty > :not(.pane-empty) { display:none; }
+    .tab-pane:not(.is-empty) > .pane-empty { display:none; }
+    .pane-empty { background:var(--card); border:1px dashed var(--muted); border-radius:8px; padding:3rem 1.5rem; text-align:center; color:var(--slate); }
+    .pane-empty-title { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--white); margin-bottom:.35rem; }
+
     /* HERO BAR */
     .hero-stats { background:var(--gold); padding:1rem 2rem; display:flex; overflow-x:auto; }
     .hero-stat { flex:1; min-width:80px; text-align:center; padding:0 .75rem; border-right:2px solid var(--gold2); }
@@ -200,6 +216,8 @@
   <div class="header-number">#12</div>
 </header>
 
+<nav class="season-bar" id="season-bar" aria-label="Season"><span class="season-bar-label">Season</span></nav>
+
 <div class="hero-stats" id="hero-stats"></div>
 
 <div class="tab-bar">
@@ -211,6 +229,7 @@
 
   <!-- ═══════════════ BATTING TAB ═══════════════ -->
   <div class="tab-pane active" id="tab-batting">
+    <div class="pane-empty"><div class="pane-empty-title">No batting stats yet</div>Games will show up here once they're added for this season.</div>
     <div class="section-label">Batting</div>
     <div class="section-title">Season Totals</div>
     <div class="stat-grid" id="batting-grid"></div>
@@ -254,6 +273,7 @@
 
   <!-- ═══════════════ PITCHING TAB ═══════════════ -->
   <div class="tab-pane" id="tab-pitching">
+    <div class="pane-empty"><div class="pane-empty-title">No pitching stats yet</div>Appearances will show up here once they're added for this season.</div>
     <div class="section-label teal">Pitching</div>
     <div class="section-title">Season Totals</div>
     <div class="stat-grid" id="pitch-grid"></div>
@@ -303,7 +323,7 @@
     <div class="popup-name" id="popup-name"></div>
     <div class="popup-value-row">
       <div class="popup-her-val" id="popup-val"></div>
-      <div class="popup-her-label">Zoe's 2026 season</div>
+      <div class="popup-her-label" id="popup-season"></div>
     </div>
     <div class="popup-plain" id="popup-plain"></div>
     <div class="popup-example" id="popup-example"></div>
@@ -350,14 +370,14 @@ function calcBat(games) {
 }
 
 // ─── PITCHING COMPUTE ────────────────────────────────────────
-function calcPitch(games) {
+function calcPitch(games, innings) {
   let ipD=0,gs=0,bf=0,pitches=0,w=0,l=0,sv=0,ha=0,ra=0,er=0,bbp=0,k=0,hbpp=0,lob=0,sb=0,cs=0;
   for (const g of games) {
     ipD+=ipToD(g.ip);gs+=g.gs;bf+=g.bf;pitches+=g.pitches;w+=g.w;l+=g.l;sv+=g.sv;
     ha+=g.h_allowed;ra+=g.r_allowed;er+=g.er;bbp+=g.bb_p;k+=g.k;hbpp+=g.hbp_p;lob+=g.lob;
     sb+=g.sb_p||0;cs+=g.cs_p||0;
   }
-  const era=ipD>0?(er/ipD)*6:0;   // 6-inning game standard for 10U softball
+  const era=ipD>0?(er/ipD)*innings:0;   // regulation game length: 6 for 10U, 7 for 12U
   const whip=ipD>0?(bbp+ha)/ipD:0;
   const k9=ipD>0?(k/ipD)*9:0;
   const bb9=ipD>0?(bbp/ipD)*9:0;
@@ -371,28 +391,6 @@ function calcPitch(games) {
 
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('team-label').textContent = PLAYER.team;
-  document.getElementById('season-label').textContent = PLAYER.season;
-
-  const b = calcBat(GAMES);
-  const p = calcPitch(PITCHING);
-
-  // HERO BAR (combined)
-  const heroItems = [
-    {label:'AVG', value:fmt3(b.avg)},
-    {label:'OPS', value:fmt3(b.ops)},
-    {label:'RBI', value:b.rbi},
-    {label:'SB',  value:b.sb},
-    {label:'IP',  value:dToIP(p.ipD)},
-    {label:'ERA', value:fmt2(p.era)},
-    {label:'K',   value:p.k},
-    {label:'WHIP',value:fmt2(p.whip)},
-  ];
-  const hBar = document.getElementById('hero-stats');
-  heroItems.forEach(item => {
-    hBar.innerHTML += `<div class="hero-stat"><div class="hero-stat-value">${item.value}</div><div class="hero-stat-label">${item.label}</div></div>`;
-  });
-
   // TABS
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -403,278 +401,339 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ══════════ BATTING ══════════
-  const battingCards = [
-    {label:'PA',  desc:'Plate Appearances', val:b.pa},
-    {label:'AB',  desc:'At Bats',           val:b.ab},
-    {label:'H',   desc:'Hits',              val:b.h,  cls:'gold'},
-    {label:'2B',  desc:'Doubles',           val:b.d},
-    {label:'3B',  desc:'Triples',           val:b.t},
-    {label:'HR',  desc:'Home Runs',         val:b.hr},
-    {label:'TB',  desc:'Total Bases',       val:b.tb, cls:'gold'},
-    {label:'RBI', desc:'Runs Batted In',    val:b.rbi,cls:'gold'},
-    {label:'R',   desc:'Runs Scored',       val:b.r},
-    {label:'BB',  desc:'Walks',             val:b.bb},
-    {label:'SO',  desc:'Strikeouts',        val:b.so, cls:'red'},
-    {label:'HBP', desc:'Hit By Pitch',      val:b.hbp},
-    {label:'SB',  desc:'Stolen Bases',      val:b.sb, cls:'gold'},
-    {label:'CS',  desc:'Caught Stealing',   val:b.cs},
-    {label:'SB%', desc:'Stolen Base %',     val:fmtPct(b.sbpct), cls:'gold'},
-    {label:'ROE', desc:'Reached on Error',  val:b.roe},
-  ];
-  const bg = document.getElementById('batting-grid');
-  battingCards.forEach(c => {
-    bg.innerHTML += `<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+  // SEASON SWITCHER
+  const seasonBar = document.getElementById('season-bar');
+  SEASONS.forEach(s => {
+    seasonBar.innerHTML += `<button class="season-btn" data-season="${s.id}">${s.label}<span>${s.team}</span></button>`;
+  });
+  seasonBar.addEventListener('click', e => {
+    const btn = e.target.closest('.season-btn');
+    if (btn) selectSeason(btn.dataset.season);
   });
 
-  const gp = GAMES.length;
-  const advCards = [
-    {label:'AVG',   val:fmt3(b.avg),  desc:`${b.h} hits in ${b.ab} at bats`, cls:''},
-    {label:'OBP',   val:fmt3(b.obp),  desc:`Gets on base ${Math.round(b.obp*100)}% of PA`, cls:''},
-    {label:'SLG',   val:fmt3(b.slg),  desc:`${b.tb} total bases in ${b.ab} AB`, cls:''},
-    {label:'OPS',   val:fmt3(b.ops),  desc:`Elite: >1.000 · Hers: ${fmt3(b.ops)}`, cls:''},
-    {label:'ISO',   val:fmt3(b.iso),  desc:`Isolated power — extra base rate`, cls:''},
-    {label:'BABIP', val:fmt3(b.babip),desc:`Avg on balls in play (excl K/HR)`, cls:''},
-    {label:'K%',    val:fmtPct(b.kpct),desc:`${b.so} K in ${b.pa} PA`, cls:'red'},
-    {label:'BB%',   val:fmtPct(b.bbpct),desc:`${b.bb} walks in ${b.pa} PA`, cls:''},
-    {label:'K:BB',  val:b.bb>0?(b.so/b.bb).toFixed(2):'—', desc:`Lower is better as a hitter`, cls:''},
-    {label:'R/G',   val:(b.r/gp).toFixed(2),  desc:`Runs per game over ${gp} games`, cls:''},
-    {label:'RBI/G', val:(b.rbi/gp).toFixed(2),desc:`RBI per game average`, cls:''},
-    {label:'SB/G',  val:(b.sb/gp).toFixed(2), desc:`Stolen bases per game`, cls:''},
-  ];
-  const ag = document.getElementById('adv-grid');
-  advCards.forEach(c => {
-    ag.innerHTML += `<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
-  });
-
-  // HIT BAR
-  const totalH = b.h||1;
-  const hitSegs = [
-    {label:'1B',count:b.s1, color:'#f5c842'},
-    {label:'2B',count:b.d,  color:'#e0a800'},
-    {label:'3B',count:b.t,  color:'#d94f3d'},
-    {label:'HR',count:b.hr, color:'#b83a2b'},
-  ];
-  const hitBar = document.getElementById('hit-bar');
-  hitSegs.forEach(s => { if(s.count>0) hitBar.innerHTML+=`<div class="htb-seg" style="flex:${s.count};background:${s.color}">${s.label}</div>`; });
-  const sparks = document.getElementById('hit-sparks');
-  const maxH = Math.max(...hitSegs.map(s=>s.count),1);
-  hitSegs.forEach(s => {
-    const cls = (s.label==='3B'||s.label==='HR') ? 'red' : '';
-    sparks.innerHTML+=`<div class="spark-item"><span class="spark-label">${s.label}</span><div class="spark-bar-wrap"><div class="spark-bar ${cls}" style="width:${(s.count/maxH*100).toFixed(0)}%"></div></div><span class="spark-value">${s.count}</span></div>`;
-  });
-
-  // BATTING GAME LOG
-  const batBody = document.getElementById('bat-tbody');
-  GAMES.forEach(g => {
-    const avg=g.ab>0?g.h/g.ab:0;
-    const obpD=g.ab+g.bb+g.hbp+g.sf;
-    const obp=obpD>0?(g.h+g.bb+g.hbp)/obpD:0;
-    const tb=g.singles+2*g.doubles+3*g.triples+4*g.hr;
-    const slg=g.ab>0?tb/g.ab:0;
-    const ops=obp+slg;
-    const ds=new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    batBody.innerHTML+=`<tr>
-      <td>${ds}</td><td>${g.opponent}</td>
-      <td>${g.pa}</td><td>${g.ab}</td>
-      <td class="${g.h>=2?'td-gold':''}">${g.h}</td>
-      <td>${g.singles}</td><td>${g.doubles}</td><td>${g.triples}</td>
-      <td class="${g.hr>0?'td-gold':''}">${g.hr}</td>
-      <td class="${g.rbi>=2?'td-gold':''}">${g.rbi}</td>
-      <td>${g.r}</td><td>${g.bb}</td>
-      <td class="${g.so>0?'td-red':''}">${g.so}</td>
-      <td class="${avg>=.400?'td-gold':''}">${g.ab>0?fmt3(avg):'—'}</td>
-      <td>${obpD>0?fmt3(obp):'—'}</td>
-      <td>${g.ab>0?fmt3(slg):'—'}</td>
-      <td class="${ops>=1.0?'td-gold':''}">${g.ab>0?fmt3(ops):'—'}</td>
-      <td class="${g.sb>=2?'td-gold':''}">${g.sb}</td>
-    </tr>`;
-  });
-  document.getElementById('bat-tfoot').innerHTML=`<tr>
-    <td>Season</td><td>Totals</td>
-    <td>${b.pa}</td><td>${b.ab}</td><td>${b.h}</td><td>${b.s1}</td><td>${b.d}</td><td>${b.t}</td><td>${b.hr}</td>
-    <td>${b.rbi}</td><td>${b.r}</td><td>${b.bb}</td><td>${b.so}</td>
-    <td>${fmt3(b.avg)}</td><td>${fmt3(b.obp)}</td><td>${fmt3(b.slg)}</td><td>${fmt3(b.ops)}</td><td>${b.sb}</td>
-  </tr>`;
-
-  // ══════════ PITCHING ══════════
-  const pitchCards = [
-    {label:'APP', desc:'Appearances',     val:p.app},
-    {label:'GS',  desc:'Games Started',   val:p.gs},
-    {label:'IP',  desc:'Innings Pitched', val:dToIP(p.ipD), cls:'teal'},
-    {label:'BF',  desc:'Batters Faced',   val:p.bf},
-    {label:'P',   desc:'Total Pitches',   val:p.pitches},
-    {label:'W',   desc:'Wins',            val:p.w, cls:'teal'},
-    {label:'L',   desc:'Losses',          val:p.l},
-    {label:'SV',  desc:'Saves',           val:p.sv},
-    {label:'H',   desc:'Hits Allowed',    val:p.ha},
-    {label:'R',   desc:'Runs Allowed',    val:p.ra},
-    {label:'ER',  desc:'Earned Runs',     val:p.er},
-    {label:'BB',  desc:'Walks Issued',    val:p.bbp},
-    {label:'K',   desc:'Strikeouts',      val:p.k, cls:'teal'},
-    {label:'HBP', desc:'Hit Batters',     val:p.hbpp},
-    {label:'LOB', desc:'Left on Base',    val:p.lob},
-    {label:'SB',  desc:'Stolen Bases vs', val:p.sb},
-  ];
-  const pg = document.getElementById('pitch-grid');
-  pitchCards.forEach(c => {
-    pg.innerHTML+=`<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
-  });
-
-  // GAUGES
-  const gauges = [
-    {val:fmt2(p.era),  label:'ERA',  sub:'Earned Run Average (7-inn)'},
-    {val:fmt2(p.whip), label:'WHIP', sub:'Walks + Hits per Inning'},
-    {val:fmt2(p.k9),   label:'K/9',  sub:'Strikeouts per 9 Innings'},
-    {val:fmt2(p.bb9),  label:'BB/9', sub:'Walks per 9 Innings'},
-    {val:p.kbb!==null?fmt2(p.kbb):'—', label:'K:BB', sub:`${p.k} K to ${p.bbp} BB`},
-    {val:fmt2(p.ppi),  label:'P/IP', sub:'Pitches per Inning'},
-  ];
-  const gr = document.getElementById('gauge-row');
-  gauges.forEach(g => {
-    gr.innerHTML+=`<div class="gauge-card"><div class="gauge-big">${g.val}</div><div class="gauge-label">${g.label}</div><div class="gauge-sub">${g.sub}</div></div>`;
-  });
-
-  const padvCards = [
-    {label:'K%',    val:fmtPct(p.kpct),  desc:`${p.k} strikeouts in ${p.bf} batters faced`, cls:'teal'},
-    {label:'BB%',   val:fmtPct(p.bbpct), desc:`${p.bbp} walks in ${p.bf} BF`, cls:''},
-    {label:'K-BB%', val:fmtPct(p.kpct-p.bbpct), desc:`K% minus BB% — higher is better`, cls:'teal'},
-    {label:'H/9',   val:fmt2(p.ipD>0?p.ha/p.ipD*9:0), desc:`Hits allowed per 9 innings`, cls:''},
-    {label:'P/BF',  val:fmt2(p.bf>0?p.pitches/p.bf:0),desc:`Pitches per batter faced`, cls:''},
-    {label:'W%',    val:p.w+p.l>0?fmtPct(p.w/(p.w+p.l)):'—', desc:`Win percentage (decisions only)`, cls:'teal'},
-    {label:'K/IP',  val:fmt2(p.ipD>0?p.k/p.ipD:0),    desc:`Raw strikeouts per inning`, cls:'teal'},
-    {label:'ER/G',  val:fmt2(p.app>0?p.er/p.app:0),   desc:`Earned runs per appearance`, cls:''},
-  ];
-  const pag = document.getElementById('padv-grid');
-  padvCards.forEach(c => {
-    pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
-  });
-
-  // PITCHING GAME LOG
-  const pBody = document.getElementById('pitch-tbody');
-  PITCHING.forEach(g => {
-    const ipd = ipToD(g.ip);
-    const era = ipd>0?(g.er/ipd)*6:0;
-    const whip = ipd>0?(g.bb_p+g.h_allowed)/ipd:0;
-    const k9 = ipd>0?(g.k/ipd)*9:0;
-    const ppi = ipd>0?g.pitches/ipd:0;
-    const ds = new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    pBody.innerHTML+=`<tr>
-      <td>${ds}</td><td>${g.opponent}</td>
-      <td>${g.ip}</td>
-      <td>${g.gs?'✓':''}</td>
-      <td>${g.bf}</td><td>${g.pitches}</td>
-      <td class="${g.w?'td-teal':''}">${g.w||''}</td>
-      <td class="${g.l?'td-red':''}">${g.l||''}</td>
-      <td class="${g.sv?'td-teal':''}">${g.sv||''}</td>
-      <td>${g.h_allowed}</td><td>${g.r_allowed}</td>
-      <td class="${g.er>3?'td-red':g.er===0?'td-teal':''}">${g.er}</td>
-      <td>${g.bb_p}</td>
-      <td class="${g.k>=10?'td-teal':''}">${g.k}</td>
-      <td class="${era<=2?'td-teal':era>=5?'td-red':''}">${ipd>0?fmt2(era):'—'}</td>
-      <td>${ipd>0?fmt2(whip):'—'}</td>
-      <td class="${k9>=10?'td-teal':''}">${ipd>0?fmt2(k9):'—'}</td>
-      <td>${ipd>0?fmt2(ppi):'—'}</td>
-    </tr>`;
-  });
-  document.getElementById('pitch-tfoot').innerHTML=`<tr>
-    <td>Season</td><td>Totals</td>
-    <td>${dToIP(p.ipD)}</td><td>${p.gs}</td><td>${p.bf}</td><td>${p.pitches}</td>
-    <td>${p.w}</td><td>${p.l}</td><td>${p.sv}</td>
-    <td>${p.ha}</td><td>${p.ra}</td><td>${p.er}</td><td>${p.bbp}</td><td>${p.k}</td>
-    <td>${fmt2(p.era)}</td><td>${fmt2(p.whip)}</td><td>${fmt2(p.k9)}</td><td>${fmt2(p.ppi)}</td>
-  </tr>`;
-
-  // ══════════ BATTING CHARTS ══════════
-  const chartOpts = {
-    responsive:true,
-    plugins:{legend:{labels:{color:'#8a9bb0',font:{family:'Inter',size:11}}}},
-    scales:{
-      x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
-      y:{ticks:{color:'#8a9bb0',font:{size:10}},grid:{color:'#1e2f42'}}
-    }
-  };
-
-  // Cumulative AVG/OBP/OPS
-  let cAB=0,cH=0,cBB=0,cHBP=0,cSF=0,cTB=0;
-  const avgD=[],obpD2=[],opsD=[],lblB=[];
-  GAMES.forEach((g,i)=>{
-    cAB+=g.ab;cH+=g.h;cBB+=g.bb;cHBP+=g.hbp;cSF+=g.sf;
-    cTB+=g.singles+2*g.doubles+3*g.triples+4*g.hr;
-    const a=cAB>0?cH/cAB:0;
-    const od=cAB+cBB+cHBP+cSF;
-    const o=od>0?(cH+cBB+cHBP)/od:0;
-    const sl=cAB>0?cTB/cAB:0;
-    lblB.push(i+1);avgD.push(+a.toFixed(3));obpD2.push(+o.toFixed(3));opsD.push(+(o+sl).toFixed(3));
-  });
-  new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:lblB,datasets:[
-    {label:'AVG',data:avgD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
-    {label:'OBP',data:obpD2,borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
-    {label:'OPS',data:opsD,borderColor:'#8a9bb0',backgroundColor:'rgba(138,155,176,.08)',pointRadius:2,tension:.3},
-  ]},options:chartOpts});
-
-  new Chart(document.getElementById('rbiChart'),{type:'bar',data:{labels:GAMES.map((_,i)=>i+1),datasets:[
-    {label:'RBI',data:GAMES.map(g=>g.rbi),backgroundColor:'#f5c842'},
-    {label:'R',  data:GAMES.map(g=>g.r),  backgroundColor:'rgba(217,79,61,.7)'},
-  ]},options:{...chartOpts}});
-
-  let cumSB=0;
-  new Chart(document.getElementById('sbChart'),{type:'line',data:{labels:lblB,datasets:[
-    {label:'Stolen Bases',data:GAMES.map(g=>{cumSB+=g.sb;return cumSB;}),
-     borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.12)',pointRadius:2,fill:true,tension:.3}
-  ]},options:chartOpts});
-
-  const kR=[],bbR=[];
-  for(let i=0;i<GAMES.length;i++){
-    const sl=GAMES.slice(Math.max(0,i-4),i+1);
-    const tpa=sl.reduce((a,g)=>a+g.pa,0);
-    kR.push(tpa>0?+(sl.reduce((a,g)=>a+g.so,0)/tpa*100).toFixed(1):0);
-    bbR.push(tpa>0?+(sl.reduce((a,g)=>a+g.bb,0)/tpa*100).toFixed(1):0);
+  function selectSeason(id) {
+    const season = SEASONS.find(s => s.id === id);
+    if (!season) return;
+    seasonBar.querySelectorAll('.season-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.season === id));
+    history.replaceState(null, '', '#' + id);
+    renderSeason(season);
   }
-  new Chart(document.getElementById('kbbChart'),{type:'line',data:{labels:lblB,datasets:[
-    {label:'K%', data:kR, borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
-    {label:'BB%',data:bbR,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
-  ]},options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>v+'%'}}}}});
 
-  // ══════════ PITCHING CHARTS ══════════
-  const pitchChartOpts = {...chartOpts};
+  // Renders every section for one season; safe to call repeatedly
+  function renderSeason(season) {
+    const GAMES = season.games, PITCHING = season.pitching;  // shadows the Spring arrays from stats.js
 
-  // Cumulative ERA & WHIP
-  let cipD=0,cER=0,cBBP=0,cHA=0;
-  const eraD=[],whipD=[],lblP=[];
-  PITCHING.forEach((g,i)=>{
-    cipD+=ipToD(g.ip);cER+=g.er;cBBP+=g.bb_p;cHA+=g.h_allowed;
-    eraD.push(cipD>0?+(cER/cipD*6).toFixed(2):0);
-    whipD.push(cipD>0?+((cBBP+cHA)/cipD).toFixed(3):0);
-    lblP.push(i+1);
-  });
-  new Chart(document.getElementById('eraChart'),{type:'line',data:{labels:lblP,datasets:[
-    {label:'ERA', data:eraD, borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.08)',pointRadius:3,tension:.3},
-    {label:'WHIP',data:whipD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:3,tension:.3,yAxisID:'y2'},
-  ]},options:{...pitchChartOpts,scales:{
-    x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
-    y:{ticks:{color:'#38b2ac',font:{size:10}},grid:{color:'#1e2f42'},title:{display:true,text:'ERA',color:'#38b2ac',font:{size:10}}},
-    y2:{position:'right',ticks:{color:'#f5c842',font:{size:10}},grid:{drawOnChartArea:false},title:{display:true,text:'WHIP',color:'#f5c842',font:{size:10}}},
-  }}});
+    document.getElementById('team-label').textContent = season.team;
+    document.getElementById('season-label').textContent = season.label;
+    document.getElementById('popup-season').textContent = `Zoe's ${season.label} season`;
+    document.title = `Zoe Derocher · ${season.label} Season Stats`;
 
-  // K per outing bar
-  new Chart(document.getElementById('kChart'),{type:'bar',data:{labels:lblP,datasets:[
-    {label:'K',data:PITCHING.map(g=>g.k),backgroundColor:PITCHING.map(g=>g.k>=10?'#38b2ac':'rgba(56,178,172,.5)'),borderRadius:2},
-  ]},options:{...pitchChartOpts,plugins:{...pitchChartOpts.plugins,annotation:{}}}});
+    // Clear anything a previous season rendered
+    ['hero-stats','batting-grid','adv-grid','hit-bar','hit-sparks','bat-tbody',
+     'pitch-grid','gauge-row','padv-grid','pitch-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+    document.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.destroy());
+    document.getElementById('tab-batting').classList.toggle('is-empty', !GAMES.length);
+    document.getElementById('tab-pitching').classList.toggle('is-empty', !PITCHING.length);
 
-  // Pitches per inning
-  new Chart(document.getElementById('pitchEffChart'),{type:'line',data:{labels:lblP,datasets:[
-    {label:'Pitches/IP',data:PITCHING.map(g=>{const d=ipToD(g.ip);return d>0?+(g.pitches/d).toFixed(1):0;}),
-     borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.1)',pointRadius:3,tension:.3},
-  ]},options:pitchChartOpts});
+    const b = calcBat(GAMES);
+    const p = calcPitch(PITCHING, season.innings);
 
-  // Cumulative K9
-  let cipD2=0,cK=0;
-  const k9D=[];
-  PITCHING.forEach((g,i)=>{cipD2+=ipToD(g.ip);cK+=g.k;k9D.push(cipD2>0?+(cK/cipD2*9).toFixed(2):0);});
-  new Chart(document.getElementById('k9Chart'),{type:'line',data:{labels:lblP,datasets:[
-    {label:'K/9',data:k9D,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.12)',pointRadius:3,fill:true,tension:.3},
-  ]},options:pitchChartOpts});
+    // HERO BAR (combined)
+    const heroItems = [
+      ...(GAMES.length ? [
+        {label:'AVG', value:fmt3(b.avg)},
+        {label:'OPS', value:fmt3(b.ops)},
+        {label:'RBI', value:b.rbi},
+        {label:'SB',  value:b.sb},
+      ] : []),
+      ...(PITCHING.length ? [
+        {label:'IP',  value:dToIP(p.ipD)},
+        {label:'ERA', value:fmt2(p.era)},
+        {label:'K',   value:p.k},
+        {label:'WHIP',value:fmt2(p.whip)},
+      ] : []),
+    ];
+    const hBar = document.getElementById('hero-stats');
+    hBar.hidden = !heroItems.length;
+    heroItems.forEach(item => {
+      hBar.innerHTML += `<div class="hero-stat"><div class="hero-stat-value">${item.value}</div><div class="hero-stat-label">${item.label}</div></div>`;
+    });
+
+    // ══════════ BATTING ══════════
+    const battingCards = [
+      {label:'PA',  desc:'Plate Appearances', val:b.pa},
+      {label:'AB',  desc:'At Bats',           val:b.ab},
+      {label:'H',   desc:'Hits',              val:b.h,  cls:'gold'},
+      {label:'2B',  desc:'Doubles',           val:b.d},
+      {label:'3B',  desc:'Triples',           val:b.t},
+      {label:'HR',  desc:'Home Runs',         val:b.hr},
+      {label:'TB',  desc:'Total Bases',       val:b.tb, cls:'gold'},
+      {label:'RBI', desc:'Runs Batted In',    val:b.rbi,cls:'gold'},
+      {label:'R',   desc:'Runs Scored',       val:b.r},
+      {label:'BB',  desc:'Walks',             val:b.bb},
+      {label:'SO',  desc:'Strikeouts',        val:b.so, cls:'red'},
+      {label:'HBP', desc:'Hit By Pitch',      val:b.hbp},
+      {label:'SB',  desc:'Stolen Bases',      val:b.sb, cls:'gold'},
+      {label:'CS',  desc:'Caught Stealing',   val:b.cs},
+      {label:'SB%', desc:'Stolen Base %',     val:fmtPct(b.sbpct), cls:'gold'},
+      {label:'ROE', desc:'Reached on Error',  val:b.roe},
+    ];
+    const bg = document.getElementById('batting-grid');
+    battingCards.forEach(c => {
+      bg.innerHTML += `<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+    });
+
+    const gp = GAMES.length;
+    const advCards = [
+      {label:'AVG',   val:fmt3(b.avg),  desc:`${b.h} hits in ${b.ab} at bats`, cls:''},
+      {label:'OBP',   val:fmt3(b.obp),  desc:`Gets on base ${Math.round(b.obp*100)}% of PA`, cls:''},
+      {label:'SLG',   val:fmt3(b.slg),  desc:`${b.tb} total bases in ${b.ab} AB`, cls:''},
+      {label:'OPS',   val:fmt3(b.ops),  desc:`Elite: >1.000 · Hers: ${fmt3(b.ops)}`, cls:''},
+      {label:'ISO',   val:fmt3(b.iso),  desc:`Isolated power — extra base rate`, cls:''},
+      {label:'BABIP', val:fmt3(b.babip),desc:`Avg on balls in play (excl K/HR)`, cls:''},
+      {label:'K%',    val:fmtPct(b.kpct),desc:`${b.so} K in ${b.pa} PA`, cls:'red'},
+      {label:'BB%',   val:fmtPct(b.bbpct),desc:`${b.bb} walks in ${b.pa} PA`, cls:''},
+      {label:'K:BB',  val:b.bb>0?(b.so/b.bb).toFixed(2):'—', desc:`Lower is better as a hitter`, cls:''},
+      {label:'R/G',   val:(b.r/gp).toFixed(2),  desc:`Runs per game over ${gp} games`, cls:''},
+      {label:'RBI/G', val:(b.rbi/gp).toFixed(2),desc:`RBI per game average`, cls:''},
+      {label:'SB/G',  val:(b.sb/gp).toFixed(2), desc:`Stolen bases per game`, cls:''},
+    ];
+    const ag = document.getElementById('adv-grid');
+    advCards.forEach(c => {
+      ag.innerHTML += `<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+    });
+
+    // HIT BAR
+    const totalH = b.h||1;
+    const hitSegs = [
+      {label:'1B',count:b.s1, color:'#f5c842'},
+      {label:'2B',count:b.d,  color:'#e0a800'},
+      {label:'3B',count:b.t,  color:'#d94f3d'},
+      {label:'HR',count:b.hr, color:'#b83a2b'},
+    ];
+    const hitBar = document.getElementById('hit-bar');
+    hitSegs.forEach(s => { if(s.count>0) hitBar.innerHTML+=`<div class="htb-seg" style="flex:${s.count};background:${s.color}">${s.label}</div>`; });
+    const sparks = document.getElementById('hit-sparks');
+    const maxH = Math.max(...hitSegs.map(s=>s.count),1);
+    hitSegs.forEach(s => {
+      const cls = (s.label==='3B'||s.label==='HR') ? 'red' : '';
+      sparks.innerHTML+=`<div class="spark-item"><span class="spark-label">${s.label}</span><div class="spark-bar-wrap"><div class="spark-bar ${cls}" style="width:${(s.count/maxH*100).toFixed(0)}%"></div></div><span class="spark-value">${s.count}</span></div>`;
+    });
+
+    // BATTING GAME LOG
+    const batBody = document.getElementById('bat-tbody');
+    GAMES.forEach(g => {
+      const avg=g.ab>0?g.h/g.ab:0;
+      const obpD=g.ab+g.bb+g.hbp+g.sf;
+      const obp=obpD>0?(g.h+g.bb+g.hbp)/obpD:0;
+      const tb=g.singles+2*g.doubles+3*g.triples+4*g.hr;
+      const slg=g.ab>0?tb/g.ab:0;
+      const ops=obp+slg;
+      const ds=new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      batBody.innerHTML+=`<tr>
+        <td>${ds}</td><td>${g.opponent}</td>
+        <td>${g.pa}</td><td>${g.ab}</td>
+        <td class="${g.h>=2?'td-gold':''}">${g.h}</td>
+        <td>${g.singles}</td><td>${g.doubles}</td><td>${g.triples}</td>
+        <td class="${g.hr>0?'td-gold':''}">${g.hr}</td>
+        <td class="${g.rbi>=2?'td-gold':''}">${g.rbi}</td>
+        <td>${g.r}</td><td>${g.bb}</td>
+        <td class="${g.so>0?'td-red':''}">${g.so}</td>
+        <td class="${avg>=.400?'td-gold':''}">${g.ab>0?fmt3(avg):'—'}</td>
+        <td>${obpD>0?fmt3(obp):'—'}</td>
+        <td>${g.ab>0?fmt3(slg):'—'}</td>
+        <td class="${ops>=1.0?'td-gold':''}">${g.ab>0?fmt3(ops):'—'}</td>
+        <td class="${g.sb>=2?'td-gold':''}">${g.sb}</td>
+      </tr>`;
+    });
+    document.getElementById('bat-tfoot').innerHTML=`<tr>
+      <td>Season</td><td>Totals</td>
+      <td>${b.pa}</td><td>${b.ab}</td><td>${b.h}</td><td>${b.s1}</td><td>${b.d}</td><td>${b.t}</td><td>${b.hr}</td>
+      <td>${b.rbi}</td><td>${b.r}</td><td>${b.bb}</td><td>${b.so}</td>
+      <td>${fmt3(b.avg)}</td><td>${fmt3(b.obp)}</td><td>${fmt3(b.slg)}</td><td>${fmt3(b.ops)}</td><td>${b.sb}</td>
+    </tr>`;
+
+    // ══════════ PITCHING ══════════
+    const pitchCards = [
+      {label:'APP', desc:'Appearances',     val:p.app},
+      {label:'GS',  desc:'Games Started',   val:p.gs},
+      {label:'IP',  desc:'Innings Pitched', val:dToIP(p.ipD), cls:'teal'},
+      {label:'BF',  desc:'Batters Faced',   val:p.bf},
+      {label:'P',   desc:'Total Pitches',   val:p.pitches},
+      {label:'W',   desc:'Wins',            val:p.w, cls:'teal'},
+      {label:'L',   desc:'Losses',          val:p.l},
+      {label:'SV',  desc:'Saves',           val:p.sv},
+      {label:'H',   desc:'Hits Allowed',    val:p.ha},
+      {label:'R',   desc:'Runs Allowed',    val:p.ra},
+      {label:'ER',  desc:'Earned Runs',     val:p.er},
+      {label:'BB',  desc:'Walks Issued',    val:p.bbp},
+      {label:'K',   desc:'Strikeouts',      val:p.k, cls:'teal'},
+      {label:'HBP', desc:'Hit Batters',     val:p.hbpp},
+      {label:'LOB', desc:'Left on Base',    val:p.lob},
+      {label:'SB',  desc:'Stolen Bases vs', val:p.sb},
+    ];
+    const pg = document.getElementById('pitch-grid');
+    pitchCards.forEach(c => {
+      pg.innerHTML+=`<div class="stat-card"><div class="stat-card-value${c.cls?' '+c.cls:''}">${c.val}</div><div class="stat-card-label">${c.label}</div><div class="stat-card-desc">${c.desc}</div></div>`;
+    });
+
+    // GAUGES
+    const gauges = [
+      {val:fmt2(p.era),  label:'ERA',  sub:`Earned Run Average (${season.innings}-inn)`},
+      {val:fmt2(p.whip), label:'WHIP', sub:'Walks + Hits per Inning'},
+      {val:fmt2(p.k9),   label:'K/9',  sub:'Strikeouts per 9 Innings'},
+      {val:fmt2(p.bb9),  label:'BB/9', sub:'Walks per 9 Innings'},
+      {val:p.kbb!==null?fmt2(p.kbb):'—', label:'K:BB', sub:`${p.k} K to ${p.bbp} BB`},
+      {val:fmt2(p.ppi),  label:'P/IP', sub:'Pitches per Inning'},
+    ];
+    const gr = document.getElementById('gauge-row');
+    gauges.forEach(g => {
+      gr.innerHTML+=`<div class="gauge-card"><div class="gauge-big">${g.val}</div><div class="gauge-label">${g.label}</div><div class="gauge-sub">${g.sub}</div></div>`;
+    });
+
+    const padvCards = [
+      {label:'K%',    val:fmtPct(p.kpct),  desc:`${p.k} strikeouts in ${p.bf} batters faced`, cls:'teal'},
+      {label:'BB%',   val:fmtPct(p.bbpct), desc:`${p.bbp} walks in ${p.bf} BF`, cls:''},
+      {label:'K-BB%', val:fmtPct(p.kpct-p.bbpct), desc:`K% minus BB% — higher is better`, cls:'teal'},
+      {label:'H/9',   val:fmt2(p.ipD>0?p.ha/p.ipD*9:0), desc:`Hits allowed per 9 innings`, cls:''},
+      {label:'P/BF',  val:fmt2(p.bf>0?p.pitches/p.bf:0),desc:`Pitches per batter faced`, cls:''},
+      {label:'W%',    val:p.w+p.l>0?fmtPct(p.w/(p.w+p.l)):'—', desc:`Win percentage (decisions only)`, cls:'teal'},
+      {label:'K/IP',  val:fmt2(p.ipD>0?p.k/p.ipD:0),    desc:`Raw strikeouts per inning`, cls:'teal'},
+      {label:'ER/G',  val:fmt2(p.app>0?p.er/p.app:0),   desc:`Earned runs per appearance`, cls:''},
+    ];
+    const pag = document.getElementById('padv-grid');
+    padvCards.forEach(c => {
+      pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
+    });
+
+    // PITCHING GAME LOG
+    const pBody = document.getElementById('pitch-tbody');
+    PITCHING.forEach(g => {
+      const ipd = ipToD(g.ip);
+      const era = ipd>0?(g.er/ipd)*season.innings:0;
+      const whip = ipd>0?(g.bb_p+g.h_allowed)/ipd:0;
+      const k9 = ipd>0?(g.k/ipd)*9:0;
+      const ppi = ipd>0?g.pitches/ipd:0;
+      const ds = new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      pBody.innerHTML+=`<tr>
+        <td>${ds}</td><td>${g.opponent}</td>
+        <td>${g.ip}</td>
+        <td>${g.gs?'✓':''}</td>
+        <td>${g.bf}</td><td>${g.pitches}</td>
+        <td class="${g.w?'td-teal':''}">${g.w||''}</td>
+        <td class="${g.l?'td-red':''}">${g.l||''}</td>
+        <td class="${g.sv?'td-teal':''}">${g.sv||''}</td>
+        <td>${g.h_allowed}</td><td>${g.r_allowed}</td>
+        <td class="${g.er>3?'td-red':g.er===0?'td-teal':''}">${g.er}</td>
+        <td>${g.bb_p}</td>
+        <td class="${g.k>=10?'td-teal':''}">${g.k}</td>
+        <td class="${era<=2?'td-teal':era>=5?'td-red':''}">${ipd>0?fmt2(era):'—'}</td>
+        <td>${ipd>0?fmt2(whip):'—'}</td>
+        <td class="${k9>=10?'td-teal':''}">${ipd>0?fmt2(k9):'—'}</td>
+        <td>${ipd>0?fmt2(ppi):'—'}</td>
+      </tr>`;
+    });
+    document.getElementById('pitch-tfoot').innerHTML=`<tr>
+      <td>Season</td><td>Totals</td>
+      <td>${dToIP(p.ipD)}</td><td>${p.gs}</td><td>${p.bf}</td><td>${p.pitches}</td>
+      <td>${p.w}</td><td>${p.l}</td><td>${p.sv}</td>
+      <td>${p.ha}</td><td>${p.ra}</td><td>${p.er}</td><td>${p.bbp}</td><td>${p.k}</td>
+      <td>${fmt2(p.era)}</td><td>${fmt2(p.whip)}</td><td>${fmt2(p.k9)}</td><td>${fmt2(p.ppi)}</td>
+    </tr>`;
+
+    // ══════════ BATTING CHARTS ══════════
+    const chartOpts = {
+      responsive:true,
+      plugins:{legend:{labels:{color:'#8a9bb0',font:{family:'Inter',size:11}}}},
+      scales:{
+        x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
+        y:{ticks:{color:'#8a9bb0',font:{size:10}},grid:{color:'#1e2f42'}}
+      }
+    };
+
+    // Cumulative AVG/OBP/OPS
+    let cAB=0,cH=0,cBB=0,cHBP=0,cSF=0,cTB=0;
+    const avgD=[],obpD2=[],opsD=[],lblB=[];
+    GAMES.forEach((g,i)=>{
+      cAB+=g.ab;cH+=g.h;cBB+=g.bb;cHBP+=g.hbp;cSF+=g.sf;
+      cTB+=g.singles+2*g.doubles+3*g.triples+4*g.hr;
+      const a=cAB>0?cH/cAB:0;
+      const od=cAB+cBB+cHBP+cSF;
+      const o=od>0?(cH+cBB+cHBP)/od:0;
+      const sl=cAB>0?cTB/cAB:0;
+      lblB.push(i+1);avgD.push(+a.toFixed(3));obpD2.push(+o.toFixed(3));opsD.push(+(o+sl).toFixed(3));
+    });
+    new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:lblB,datasets:[
+      {label:'AVG',data:avgD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
+      {label:'OBP',data:obpD2,borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
+      {label:'OPS',data:opsD,borderColor:'#8a9bb0',backgroundColor:'rgba(138,155,176,.08)',pointRadius:2,tension:.3},
+    ]},options:chartOpts});
+
+    new Chart(document.getElementById('rbiChart'),{type:'bar',data:{labels:GAMES.map((_,i)=>i+1),datasets:[
+      {label:'RBI',data:GAMES.map(g=>g.rbi),backgroundColor:'#f5c842'},
+      {label:'R',  data:GAMES.map(g=>g.r),  backgroundColor:'rgba(217,79,61,.7)'},
+    ]},options:{...chartOpts}});
+
+    let cumSB=0;
+    new Chart(document.getElementById('sbChart'),{type:'line',data:{labels:lblB,datasets:[
+      {label:'Stolen Bases',data:GAMES.map(g=>{cumSB+=g.sb;return cumSB;}),
+       borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.12)',pointRadius:2,fill:true,tension:.3}
+    ]},options:chartOpts});
+
+    const kR=[],bbR=[];
+    for(let i=0;i<GAMES.length;i++){
+      const sl=GAMES.slice(Math.max(0,i-4),i+1);
+      const tpa=sl.reduce((a,g)=>a+g.pa,0);
+      kR.push(tpa>0?+(sl.reduce((a,g)=>a+g.so,0)/tpa*100).toFixed(1):0);
+      bbR.push(tpa>0?+(sl.reduce((a,g)=>a+g.bb,0)/tpa*100).toFixed(1):0);
+    }
+    new Chart(document.getElementById('kbbChart'),{type:'line',data:{labels:lblB,datasets:[
+      {label:'K%', data:kR, borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.08)',pointRadius:2,tension:.3},
+      {label:'BB%',data:bbR,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:2,tension:.3},
+    ]},options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>v+'%'}}}}});
+
+    // ══════════ PITCHING CHARTS ══════════
+    const pitchChartOpts = {...chartOpts};
+
+    // Cumulative ERA & WHIP
+    let cipD=0,cER=0,cBBP=0,cHA=0;
+    const eraD=[],whipD=[],lblP=[];
+    PITCHING.forEach((g,i)=>{
+      cipD+=ipToD(g.ip);cER+=g.er;cBBP+=g.bb_p;cHA+=g.h_allowed;
+      eraD.push(cipD>0?+(cER/cipD*season.innings).toFixed(2):0);
+      whipD.push(cipD>0?+((cBBP+cHA)/cipD).toFixed(3):0);
+      lblP.push(i+1);
+    });
+    new Chart(document.getElementById('eraChart'),{type:'line',data:{labels:lblP,datasets:[
+      {label:'ERA', data:eraD, borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.08)',pointRadius:3,tension:.3},
+      {label:'WHIP',data:whipD,borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.08)',pointRadius:3,tension:.3,yAxisID:'y2'},
+    ]},options:{...pitchChartOpts,scales:{
+      x:{ticks:{color:'#8a9bb0',font:{size:9},maxTicksLimit:12},grid:{color:'#1e2f42'}},
+      y:{ticks:{color:'#38b2ac',font:{size:10}},grid:{color:'#1e2f42'},title:{display:true,text:'ERA',color:'#38b2ac',font:{size:10}}},
+      y2:{position:'right',ticks:{color:'#f5c842',font:{size:10}},grid:{drawOnChartArea:false},title:{display:true,text:'WHIP',color:'#f5c842',font:{size:10}}},
+    }}});
+
+    // K per outing bar
+    new Chart(document.getElementById('kChart'),{type:'bar',data:{labels:lblP,datasets:[
+      {label:'K',data:PITCHING.map(g=>g.k),backgroundColor:PITCHING.map(g=>g.k>=10?'#38b2ac':'rgba(56,178,172,.5)'),borderRadius:2},
+    ]},options:{...pitchChartOpts,plugins:{...pitchChartOpts.plugins,annotation:{}}}});
+
+    // Pitches per inning
+    new Chart(document.getElementById('pitchEffChart'),{type:'line',data:{labels:lblP,datasets:[
+      {label:'Pitches/IP',data:PITCHING.map(g=>{const d=ipToD(g.ip);return d>0?+(g.pitches/d).toFixed(1):0;}),
+       borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.1)',pointRadius:3,tension:.3},
+    ]},options:pitchChartOpts});
+
+    // Cumulative K9
+    let cipD2=0,cK=0;
+    const k9D=[];
+    PITCHING.forEach((g,i)=>{cipD2+=ipToD(g.ip);cK+=g.k;k9D.push(cipD2>0?+(cK/cipD2*9).toFixed(2):0);});
+    new Chart(document.getElementById('k9Chart'),{type:'line',data:{labels:lblP,datasets:[
+      {label:'K/9',data:k9D,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,.12)',pointRadius:3,fill:true,tension:.3},
+    ]},options:pitchChartOpts});
+
+    wireCards();
+  }
 
   // ══════════ POPUP SYSTEM ══════════
   const STAT_INFO = {
@@ -812,8 +871,8 @@ document.addEventListener('DOMContentLoaded', () => {
             example:'💡 Leaving runners stranded is a skill — it means she gets big outs when the pressure is on.' },
     // ── PITCHING ADVANCED ──
     ERA:  { name:'Earned Run Average', color:'teal',
-            plain:'The most important pitching stat: how many earned runs would she allow per full game (6 innings in 10U softball)? Lower is much better.',
-            example:'💡 Formula: (ER × 6) ÷ IP. Below 2.00 is elite. Zoe\'s 2.66 is very strong.' },
+            plain:'The most important pitching stat: how many earned runs would she allow per full game (6 innings in 10U softball, 7 in 12U)? Lower is much better.',
+            example:'💡 Formula: (ER × innings per game) ÷ IP. Below 2.00 is elite.' },
     WHIP: { name:'Walks + Hits Per Inning', color:'teal',
             plain:'Adds up walks and hits allowed, then divides by innings pitched. Shows how many baserunners Zoe allows per inning. Lower = fewer runners, more dominant.',
             example:'💡 Below 1.00 is excellent. Below 1.50 is solid. Zoe\'s 1.43 is respectable for her workload.' },
@@ -897,44 +956,47 @@ document.addEventListener('DOMContentLoaded', () => {
     return !!el.closest('#tab-pitching');
   }
 
-  // Wire up stat cards
-  document.querySelectorAll('.stat-card').forEach(card => {
-    const label = card.querySelector('.stat-card-label')?.textContent?.trim();
-    const value = card.querySelector('.stat-card-value')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
-    }
-  });
+  // Cards are rebuilt on every season render, so they're wired from renderSeason
+  function wireCards() {
+    // Wire up stat cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+      const label = card.querySelector('.stat-card-label')?.textContent?.trim();
+      const value = card.querySelector('.stat-card-value')?.textContent?.trim();
+      if (label && STAT_INFO[label]) {
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-label', 'Learn about ' + label);
+        card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
+        card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
+      }
+    });
 
-  // Wire up advanced cards
-  document.querySelectorAll('.adv-card').forEach(card => {
-    const label = card.querySelector('.adv-card-label')?.textContent?.trim();
-    const value = card.querySelector('.adv-card-value')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
-    }
-  });
+    // Wire up advanced cards
+    document.querySelectorAll('.adv-card').forEach(card => {
+      const label = card.querySelector('.adv-card-label')?.textContent?.trim();
+      const value = card.querySelector('.adv-card-value')?.textContent?.trim();
+      if (label && STAT_INFO[label]) {
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-label', 'Learn about ' + label);
+        card.addEventListener('click', () => openPopup(label, value, isPitchCard(card)));
+        card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, isPitchCard(card)); });
+      }
+    });
 
-  // Wire up gauge cards (always pitching)
-  document.querySelectorAll('.gauge-card').forEach(card => {
-    const label = card.querySelector('.gauge-label')?.textContent?.trim();
-    const value = card.querySelector('.gauge-big')?.textContent?.trim();
-    if (label && STAT_INFO[label]) {
-      card.setAttribute('role','button');
-      card.setAttribute('tabindex','0');
-      card.setAttribute('aria-label', 'Learn about ' + label);
-      card.addEventListener('click', () => openPopup(label, value, true));
-      card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, true); });
-    }
-  });
+    // Wire up gauge cards (always pitching)
+    document.querySelectorAll('.gauge-card').forEach(card => {
+      const label = card.querySelector('.gauge-label')?.textContent?.trim();
+      const value = card.querySelector('.gauge-big')?.textContent?.trim();
+      if (label && STAT_INFO[label]) {
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-label', 'Learn about ' + label);
+        card.addEventListener('click', () => openPopup(label, value, true));
+        card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openPopup(label, value, true); });
+      }
+    });
+  }
 
   // Wire up table column headers — batting table vs pitching table
   document.querySelectorAll('#bat-log thead th').forEach(th => {
@@ -953,6 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
       th.addEventListener('click', () => openPopup(key, null, true));
     }
   });
+
+  // Start on the season in the URL (#fall-2026), else the latest season with any games
+  const hashId = location.hash.slice(1);
+  const latest = [...SEASONS].reverse().find(s => s.games.length || s.pitching.length) || SEASONS[0];
+  selectSeason(SEASONS.some(s => s.id === hashId) ? hashId : latest.id);
 
 });
 </script>
