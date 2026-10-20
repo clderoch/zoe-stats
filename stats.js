@@ -159,16 +159,16 @@ const FALL_PITCHING_ADV = {
 };
 
 // GameChanger team Stats → "Pitching - standard", copied as shown. Includes scrimmages.
-// self:true marks Zoe's row; other pitchers are shown anonymously on the page.
+// name is shown with the jersey number; self:true marks Zoe's row.
 //   so SO · kl K-L (strikeouts looking) · hbp HBP · era ERA · whip WHIP
 const FALL_PITCHING_TEAM = {
   pitchers: [
-    { number:10, so:19, kl:6,  hbp:1, era:9.000, whip:2.83 },
-    { number:12, so:33, kl:19, hbp:1, era:5.143, whip:2.05, self:true },
-    { number:5,  so:17, kl:8,  hbp:3, era:7.258, whip:2.90 },
-    { number:4,  so:1,  kl:1,  hbp:1, era:11.65, whip:4.41 },
-    { number:8,  so:5,  kl:2,  hbp:0, era:3.000, whip:1.00 },
-    { number:45, so:5,  kl:4,  hbp:2, era:20.25, whip:6.00 },
+    { name:"K Mendoza", number:10, so:19, kl:6,  hbp:1, era:9.000, whip:2.83 },
+    { name:"Z Derocher", number:12, so:33, kl:19, hbp:1, era:5.143, whip:2.05, self:true },
+    { name:"J Wilde", number:5,  so:17, kl:8,  hbp:3, era:7.258, whip:2.90 },
+    { name:"E Throne", number:4,  so:1,  kl:1,  hbp:1, era:11.65, whip:4.41 },
+    { name:"A Weathers", number:8,  so:5,  kl:2,  hbp:0, era:3.000, whip:1.00 },
+    { name:"Q Ringe...erg", number:45, so:5,  kl:4,  hbp:2, era:20.25, whip:6.00 },
   ],
   team: { so:80, kl:40, hbp:8, era:7.793, whip:2.75 },
 };
