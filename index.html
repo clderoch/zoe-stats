@@ -309,7 +309,7 @@
       <div class="advanced-grid" id="team-cmp-grid"></div>
       <div class="table-wrap">
         <table id="team-cmp-table">
-          <thead class="teal-head"><tr><th>Rank</th><th>Pitcher</th><th>SO</th><th>K-L</th><th>HBP</th><th>ERA</th><th>WHIP</th></tr></thead>
+          <thead class="teal-head"><tr><th>Rank</th><th>Pitcher</th><th>SO</th><th>K-L</th><th>HBP</th><th>ERA</th><th>WHIP</th><th>SV%</th><th>H</th><th>R</th><th>ER</th></tr></thead>
           <tbody id="team-cmp-tbody"></tbody>
           <tfoot class="teal-foot" id="team-cmp-tfoot"></tfoot>
         </table>
@@ -399,6 +399,7 @@ function fmt3(n) {
   return s.startsWith('0') ? s.slice(1) : s;
 }
 function fmt2(n) { return (n===null||isNaN(n)) ? '—' : n.toFixed(2); }
+function fmt1(n) { return (n===null||isNaN(n)) ? '—' : n.toFixed(1); }
 function fmtPct(n) { return (n===null||isNaN(n)) ? '—' : (n*100).toFixed(1)+'%'; }
 
 // ─── BATTING COMPUTE ────────────────────────────────────────
@@ -762,11 +763,16 @@ document.addEventListener('DOMContentLoaded', () => {
         {key:'whip', label:'WHIP', fmt:fmt2, lower:true,  desc:'Walks + hits per inning'},
         {key:'so',   label:'SO',   fmt:String, lower:false, desc:'Total strikeouts'},
         {key:'kl',   label:'K-L',  fmt:String, lower:false, desc:'Strikeouts looking'},
+        {key:'h',    label:'H',    fmt:String, lower:true,  desc:'Hits allowed'},
+        {key:'r',    label:'R',    fmt:String, lower:true,  desc:'Runs allowed'},
+        {key:'er',   label:'ER',   fmt:String, lower:true,  desc:'Earned runs allowed'},
+        {key:'svp',  label:'SV%',  fmt:fmt1, lower:false, desc:'Save percentage'},
       ];
       document.getElementById('team-cmp-grid').innerHTML = cmpCards.map(c => {
         const t = tp.team[c.key];
         const vsTeam = c.key === 'era' || c.key === 'whip'
           ? ` · team ${c.fmt(t)}`
+          : c.key === 'svp' ? ` · team ${c.fmt(t)}`
           : ` · ${Math.round(me[c.key]/t*100)}% of team`;
         return `<div class="adv-card teal"><div class="adv-card-value">${ord(rankOf(c.key, c.lower))} of ${n}</div><div class="adv-card-label">${c.label} — ${c.fmt(me[c.key])}</div><div class="adv-card-desc">${c.desc}${vsTeam}</div></div>`;
       }).join('');
@@ -780,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }).join('');
       const t = tp.team;
       document.getElementById('team-cmp-tfoot').innerHTML =
-        `<tr><td></td><td>Team</td><td>${t.so}</td><td>${t.kl}</td><td>${t.hbp}</td><td>${fmt2(t.era)}</td><td>${fmt2(t.whip)}</td></tr>`;
+        `<tr><td></td><td>Team</td><td>${t.so}</td><td>${t.kl}</td><td>${t.hbp}</td><td>${fmt2(t.era)}</td><td>${fmt2(t.whip)}</td><td>${fmt1(t.svp)}</td><td>${t.h}</td><td>${t.r}</td><td>${t.er}</td></tr>`;
     }
 
     // GAMECHANGER ADVANCED (only seasons that have it)
