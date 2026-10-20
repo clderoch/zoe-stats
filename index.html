@@ -143,6 +143,21 @@
     tfoot.teal-foot td { color:var(--teal); }
     tfoot td:first-child, tfoot td:nth-child(2) { text-align:left; color:var(--slate); }
 
+    /* STAFF COMPARISON */
+    .staff-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; margin-bottom:2.5rem; }
+    .staff-sub { font-size:.7rem; color:var(--slate); margin:-.6rem 0 .9rem; }
+    .staff-rows { display:flex; flex-direction:column; gap:.45rem; }
+    .staff-row { display:grid; grid-template-columns:96px 1fr 52px; gap:.6rem; align-items:center; }
+    .staff-name { font-size:.75rem; color:var(--slate); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .staff-name small { color:var(--muted); font-size:.65rem; }
+    .staff-row.self .staff-name { color:var(--white); font-weight:700; }
+    .staff-track { height:12px; }
+    .staff-bar { height:100%; min-width:2px; border-radius:0 4px 4px 0; background:#5b6f86; }
+    .staff-row.self .staff-bar { background:var(--gold); }
+    .staff-val { font-family:'Barlow Condensed',sans-serif; font-size:.85rem; font-weight:700; color:var(--slate); text-align:right; }
+    .staff-row.self .staff-val { color:var(--white); }
+    #staff-tbody tr.self td { color:var(--gold); font-weight:700; }
+
     .adv-group-title { font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); margin-bottom:.75rem; }
     .table-note { font-size:.7rem; color:var(--slate); margin:-1.75rem 0 2.5rem; }
 
@@ -300,6 +315,27 @@
     <div class="section-title">Pitching Metrics</div>
     <div class="gauge-row" id="gauge-row"></div>
     <div class="advanced-grid" id="padv-grid"></div>
+
+    <div id="staff-section">
+      <hr class="divider">
+      <div class="section-label teal">Staff Comparison</div>
+      <div class="section-title">Zoe vs. the Pitching Staff</div>
+      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Teammates are shown anonymously. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table.</div>
+      <div class="advanced-grid" id="staff-ranks"></div>
+      <div class="staff-grid" id="staff-charts"></div>
+      <div class="table-wrap">
+        <table id="staff-log">
+          <thead class="teal-head"><tr>
+            <th>IP Rank</th><th>Pitcher</th>
+            <th>IP</th><th>GP</th><th>GS</th><th>BF</th><th>P</th><th>W</th><th>L</th><th>SV</th>
+            <th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th>
+            <th>ERA</th><th>WHIP</th><th>K%</th><th>BB%</th><th>BAA</th><th>P/IP</th>
+          </tr></thead>
+          <tbody id="staff-tbody"></tbody>
+          <tfoot class="teal-foot" id="staff-tfoot"></tfoot>
+        </table>
+      </div>
+    </div>
 
     <div id="gc-adv-section">
       <hr class="divider">
@@ -554,7 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Clear anything a previous season rendered
     ['hero-stats','batting-grid','adv-grid','hit-bar','hit-sparks','bat-tbody',
-     'pitch-grid','gauge-row','padv-grid','pitch-tbody','gc-adv-groups','gc-adv-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+     'pitch-grid','gauge-row','padv-grid','pitch-tbody','gc-adv-groups','gc-adv-tbody',
+     'staff-ranks','staff-charts','staff-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
     document.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.destroy());
     document.getElementById('tab-batting').classList.toggle('is-empty', !GAMES.length);
     document.getElementById('tab-pitching').classList.toggle('is-empty', !PITCHING.length);
@@ -729,6 +766,63 @@ document.addEventListener('DOMContentLoaded', () => {
     padvCards.forEach(c => {
       pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
     });
+
+    // STAFF COMPARISON (whole team, official games; independent of the scrimmage filter)
+    const staff = season.staffPitching;
+    document.getElementById('staff-section').hidden = !staff;
+    if (staff) {
+      const withRates = r => {
+        const ipd = ipToD(r.ip);
+        return { ...r, ipd,
+          era:  ipd>0 ? r.er/ipd*season.innings : 0,
+          whip: ipd>0 ? (r.bb+r.h)/ipd : 0,
+          kpct: r.bf>0 ? r.k/r.bf : 0,
+          bbpct:r.bf>0 ? r.bb/r.bf : 0,
+          ppi:  ipd>0 ? r.pitches/ipd : 0 };
+      };
+      const rows = staff.pitchers.map(withRates), team = withRates(staff.team);
+      const me = rows.find(r => r.self);
+      const qualified = rows.filter(r => r.ipd >= 10);
+      const ord = n => n + ((n%100>10 && n%100<14) ? 'th' : (['th','st','nd','rd'][n%10] || 'th'));
+      const rankOf = m => 1 + qualified.filter(r => m.low ? r[m.key] < me[m.key] : r[m.key] > me[m.key]).length;
+      const STAFF_METRICS = [
+        {key:'era',  label:'ERA',  fmt:fmt2,   low:true,  chart:true},
+        {key:'whip', label:'WHIP', fmt:fmt2,   low:true,  chart:true},
+        {key:'kpct', label:'K%',   fmt:fmtPct, low:false, chart:true},
+        {key:'bbpct',label:'BB%',  fmt:fmtPct, low:true,  chart:true},
+        {key:'baa',  label:'BAA',  fmt:fmt3,   low:true,  chart:true},
+        {key:'ppi',  label:'P/IP', fmt:n => n.toFixed(1), low:true, chart:true},
+        {key:'k',    label:'K',    fmt:String, low:false},
+        {key:'ipd',  label:'IP',   fmt:dToIP,  low:false},
+      ];
+
+      // Rank tiles: Zoe's number, her rank among 10+ IP pitchers, and the team's number
+      const ranks = document.getElementById('staff-ranks');
+      STAFF_METRICS.forEach(m => {
+        ranks.innerHTML += `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${ord(rankOf(m))} of ${qualified.length} on the staff · Team ${m.fmt(team[m.key])}</div></div>`;
+      });
+
+      // One small bar chart per stat, best to worst, Zoe highlighted
+      const charts = document.getElementById('staff-charts');
+      STAFF_METRICS.filter(m => m.chart).forEach(m => {
+        const sorted = [...rows].sort((a,b) => m.low ? a[m.key]-b[m.key] : b[m.key]-a[m.key]);
+        const max = Math.max(...rows.map(r => r[m.key])) || 1;
+        charts.innerHTML += `<div class="chart-card"><div class="chart-title">${m.label} · ${m.low ? 'lower' : 'higher'} is better</div><div class="staff-sub">Team: ${m.fmt(team[m.key])}</div><div class="staff-rows">${
+          sorted.map(r => `<div class="staff-row${r.self ? ' self' : ''}" title="${r.name} · ${m.label} ${m.fmt(r[m.key])} · ${dToIP(r.ipd)} IP">`
+            + `<span class="staff-name">${r.name}${r.ipd < 10 ? ` <small>(${dToIP(r.ipd)} IP)</small>` : ''}</span>`
+            + `<div class="staff-track"><div class="staff-bar" style="width:${(r[m.key]/max*100).toFixed(1)}%"></div></div>`
+            + `<span class="staff-val">${m.fmt(r[m.key])}</span></div>`).join('')
+        }</div></div>`;
+      });
+
+      // Full table, ordered by innings
+      const staffRow = r => `<td>${dToIP(r.ipd)}</td><td>${r.gp}</td><td>${r.gs}</td><td>${r.bf}</td><td>${r.pitches}</td>
+        <td>${r.w}</td><td>${r.l}</td><td>${r.sv}</td><td>${r.h}</td><td>${r.r}</td><td>${r.er}</td><td>${r.bb}</td><td>${r.k}</td>
+        <td>${fmt2(r.era)}</td><td>${fmt2(r.whip)}</td><td>${fmtPct(r.kpct)}</td><td>${fmtPct(r.bbpct)}</td><td>${fmt3(r.baa)}</td><td>${r.ppi.toFixed(1)}</td>`;
+      document.getElementById('staff-tbody').innerHTML = rows.map((r,i) =>
+        `<tr class="${r.self ? 'self' : ''}"><td>${i+1}</td><td>${r.name}</td>${staffRow(r)}</tr>`).join('');
+      document.getElementById('staff-tfoot').innerHTML = `<tr><td></td><td>Team</td>${staffRow(team)}</tr>`;
+    }
 
     // GAMECHANGER ADVANCED (only seasons that have it)
     const adv = season.pitchingAdv;
@@ -1155,6 +1249,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'K/BB':  { name:'Strikeout-to-Walk Ratio', color:'teal',
                plain:'How many batters she struck out for every one she walked. Higher is better: it means she dominates AND has control.',
                example:'💡 Above 2.0 is solid. Above 3.0 is excellent.' },
+    BAA:     { name:'Batting Average Against', color:'teal',
+               plain:'The other team\'s batting average when Zoe is pitching: hits allowed divided by at bats against her. Lower is better.',
+               example:'💡 A BAA under .300 means batters get a hit less than 3 times in 10 at bats against her.' },
     'LBFP#': { name:'Last Batter Faced Pitch Count', color:'teal',
                plain:'Zoe\'s total pitch count when she threw her last pitch of that game. It shows how deep into her pitch count she went.',
                example:'💡 Coaches watch this to protect her arm, especially in tournaments with several games in a day.' },
@@ -1257,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('gc-adv-head').innerHTML =
     '<th>Date</th><th>Opponent</th>' + GC_ADV_COLS.map(c => `<th>${c.label.replace('<','&lt;')}</th>`).join('');
-  document.querySelectorAll('#pitch-log thead th, #gc-adv-log thead th').forEach(th => {
+  document.querySelectorAll('#pitch-log thead th, #gc-adv-log thead th, #staff-log thead th').forEach(th => {
     const key = th.textContent.trim();
     if (STAT_INFO[key]) {
       th.style.cursor = 'pointer';
