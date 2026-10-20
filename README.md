@@ -23,6 +23,8 @@ Open `stats.js` and add a new entry to the `GAMES` array:
 
 **Seasons:** Spring 2026 (10U) games go in `GAMES` / `PITCHING`; Fall 2026 (Intensity 12U McGrath) games go in `FALL_GAMES` / `FALL_PITCHING`. The season switcher at the top of the page picks which one is shown, and `index.html#fall-2026` links straight to Fall. Each season's `innings` setting in `SEASONS` sets the ERA game length; both seasons use 6 to match GameChanger.
 
+**Team comparison:** The Pitching tab's "Zoe vs. Team Pitchers" section comes from `FALL_PITCHING_TEAM` in `stats.js`. Copy each pitcher's SO, K-L, HBP, ERA and WHIP, plus the TEAM row, from GameChanger's team Stats → **Pitching - standard** page. Keep `self:true` on Zoe's row. Teammates are listed as "Teammate A, B…", not by name.
+
 **Field reference:**
 | Field | Description |
 |-------|-------------|

@@ -301,6 +301,22 @@
     <div class="gauge-row" id="gauge-row"></div>
     <div class="advanced-grid" id="padv-grid"></div>
 
+    <div id="team-cmp-section">
+      <hr class="divider">
+      <div class="section-label teal">Team Comparison</div>
+      <div class="section-title">Zoe vs. Team Pitchers</div>
+      <div class="adv-note" id="team-cmp-scrim-note" hidden>These numbers still include the scrimmage. GameChanger's team pitching table counts scrimmages, so it can't be recalculated here.</div>
+      <div class="advanced-grid" id="team-cmp-grid"></div>
+      <div class="table-wrap">
+        <table id="team-cmp-table">
+          <thead class="teal-head"><tr><th>Rank</th><th>Pitcher</th><th>SO</th><th>K-L</th><th>HBP</th><th>ERA</th><th>WHIP</th></tr></thead>
+          <tbody id="team-cmp-tbody"></tbody>
+          <tfoot class="teal-foot" id="team-cmp-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="table-note">From GameChanger's team pitching stats, sorted by ERA. Teammates aren't named. Innings aren't in this table, so pitchers with only a few innings can have very high or very low numbers.</div>
+    </div>
+
     <div id="gc-adv-section">
       <hr class="divider">
       <div class="section-label teal">GameChanger Advanced</div>
@@ -554,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Clear anything a previous season rendered
     ['hero-stats','batting-grid','adv-grid','hit-bar','hit-sparks','bat-tbody',
-     'pitch-grid','gauge-row','padv-grid','pitch-tbody','gc-adv-groups','gc-adv-tbody'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+     'pitch-grid','gauge-row','padv-grid','pitch-tbody','gc-adv-groups','gc-adv-tbody','team-cmp-grid','team-cmp-tbody','team-cmp-tfoot'].forEach(id => { document.getElementById(id).innerHTML = ''; });
     document.querySelectorAll('canvas').forEach(c => Chart.getChart(c)?.destroy());
     document.getElementById('tab-batting').classList.toggle('is-empty', !GAMES.length);
     document.getElementById('tab-pitching').classList.toggle('is-empty', !PITCHING.length);
@@ -729,6 +745,44 @@ document.addEventListener('DOMContentLoaded', () => {
     padvCards.forEach(c => {
       pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
     });
+
+    // TEAM COMPARISON (only seasons that have GameChanger's team pitching table)
+    const tp = season.pitchingTeam;
+    document.getElementById('team-cmp-section').hidden = !tp;
+    if (tp) {
+      document.getElementById('team-cmp-scrim-note').hidden =
+        !(gameFilter === 'official' && season.pitching.some(g => g.scrim));
+      const all = tp.pitchers, me = all.find(r => r.self), n = all.length;
+      // rank 1 = best; ties share a rank
+      const rankOf = (key, lowerBetter) =>
+        1 + all.filter(r => lowerBetter ? r[key] < me[key] : r[key] > me[key]).length;
+      const ord = k => k + ([11,12,13].includes(k%100) ? 'th' : ({1:'st',2:'nd',3:'rd'}[k%10] || 'th'));
+      const cmpCards = [
+        {key:'era',  label:'ERA',  fmt:fmt2, lower:true,  desc:'Earned runs per 6 innings'},
+        {key:'whip', label:'WHIP', fmt:fmt2, lower:true,  desc:'Walks + hits per inning'},
+        {key:'so',   label:'SO',   fmt:String, lower:false, desc:'Total strikeouts'},
+        {key:'kl',   label:'K-L',  fmt:String, lower:false, desc:'Strikeouts looking'},
+      ];
+      document.getElementById('team-cmp-grid').innerHTML = cmpCards.map(c => {
+        const t = tp.team[c.key];
+        const vsTeam = c.key === 'era' || c.key === 'whip'
+          ? ` · team ${c.fmt(t)}`
+          : ` · ${Math.round(me[c.key]/t*100)}% of team`;
+        return `<div class="adv-card teal"><div class="adv-card-value">${ord(rankOf(c.key, c.lower))} of ${n}</div><div class="adv-card-label">${c.label} — ${c.fmt(me[c.key])}</div><div class="adv-card-desc">${c.desc}${vsTeam}</div></div>`;
+      }).join('');
+      const sorted = [...all].sort((a, b) => a.era - b.era);
+      let mate = 0;
+      const best = k => Math.max(...all.map(r => r[k])), lowest = k => Math.min(...all.map(r => r[k]));
+      document.getElementById('team-cmp-tbody').innerHTML = sorted.map((r, i) => {
+        const name = r.self ? `${PLAYER.name.split(' ')[0]} (#${r.number})` : `Teammate ${String.fromCharCode(65 + mate++)}`;
+        const cls = r.self ? ' class="td-gold"' : '';
+        const hi = (k, lowerBetter) => (lowerBetter ? r[k] === lowest(k) : r[k] === best(k)) ? ' class="td-teal"' : '';
+        return `<tr><td${cls}>${i+1}</td><td${cls}>${name}</td><td${hi('so')}>${r.so}</td><td${hi('kl')}>${r.kl}</td><td>${r.hbp}</td><td${hi('era',true)}>${fmt2(r.era)}</td><td${hi('whip',true)}>${fmt2(r.whip)}</td></tr>`;
+      }).join('');
+      const t = tp.team;
+      document.getElementById('team-cmp-tfoot').innerHTML =
+        `<tr><td></td><td>Team</td><td>${t.so}</td><td>${t.kl}</td><td>${t.hbp}</td><td>${fmt2(t.era)}</td><td>${fmt2(t.whip)}</td></tr>`;
+    }
 
     // GAMECHANGER ADVANCED (only seasons that have it)
     const adv = season.pitchingAdv;
