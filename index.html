@@ -771,10 +771,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="adv-card teal"><div class="adv-card-value">${ord(rankOf(c.key, c.lower))} of ${n}</div><div class="adv-card-label">${c.label} — ${c.fmt(me[c.key])}</div><div class="adv-card-desc">${c.desc}${vsTeam}</div></div>`;
       }).join('');
       const sorted = [...all].sort((a, b) => a.era - b.era);
-      let mate = 0;
       const best = k => Math.max(...all.map(r => r[k])), lowest = k => Math.min(...all.map(r => r[k]));
       document.getElementById('team-cmp-tbody').innerHTML = sorted.map((r, i) => {
-        const name = r.self ? `${PLAYER.name.split(' ')[0]} (#${r.number})` : `Teammate ${String.fromCharCode(65 + mate++)}`;
+        const name = `${r.name}, #${r.number}`;
         const cls = r.self ? ' class="td-gold"' : '';
         const hi = (k, lowerBetter) => (lowerBetter ? r[k] === lowest(k) : r[k] === best(k)) ? ' class="td-teal"' : '';
         return `<tr><td${cls}>${i+1}</td><td${cls}>${name}</td><td${hi('so')}>${r.so}</td><td${hi('kl')}>${r.kl}</td><td>${r.hbp}</td><td${hi('era',true)}>${fmt2(r.era)}</td><td${hi('whip',true)}>${fmt2(r.whip)}</td></tr>`;
