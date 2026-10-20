@@ -147,7 +147,7 @@
     .staff-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; margin-bottom:2.5rem; }
     .staff-sub { font-size:.7rem; color:var(--slate); margin:-.6rem 0 .9rem; }
     .staff-rows { display:flex; flex-direction:column; gap:.45rem; }
-    .staff-row { display:grid; grid-template-columns:96px 1fr 52px; gap:.6rem; align-items:center; }
+    .staff-row { display:grid; grid-template-columns:118px 1fr 52px; gap:.6rem; align-items:center; }
     .staff-name { font-size:.75rem; color:var(--slate); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .staff-name small { color:var(--muted); font-size:.65rem; }
     .staff-row.self .staff-name { color:var(--white); font-weight:700; }
@@ -320,7 +320,7 @@
       <hr class="divider">
       <div class="section-label teal">Staff Comparison</div>
       <div class="section-title">Zoe vs. the Pitching Staff</div>
-      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Teammates are shown anonymously. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table.</div>
+      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table.</div>
       <div class="advanced-grid" id="staff-ranks"></div>
       <div class="staff-grid" id="staff-charts"></div>
       <div class="table-wrap">
@@ -820,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${r.w}</td><td>${r.l}</td><td>${r.sv}</td><td>${r.h}</td><td>${r.r}</td><td>${r.er}</td><td>${r.bb}</td><td>${r.k}</td>
         <td>${fmt2(r.era)}</td><td>${fmt2(r.whip)}</td><td>${fmtPct(r.kpct)}</td><td>${fmtPct(r.bbpct)}</td><td>${fmt3(r.baa)}</td><td>${r.ppi.toFixed(1)}</td>`;
       document.getElementById('staff-tbody').innerHTML = rows.map((r,i) =>
-        `<tr class="${r.self ? 'self' : ''}"><td>${i+1}</td><td>${r.name}</td>${staffRow(r)}</tr>`).join('');
+        `<tr class="${r.self ? 'self' : ''}"><td>${i+1}</td><td>${r.name}, #${r.number}</td>${staffRow(r)}</tr>`).join('');
       document.getElementById('staff-tfoot').innerHTML = `<tr><td></td><td>Team</td>${staffRow(team)}</tr>`;
     }
 

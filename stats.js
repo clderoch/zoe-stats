@@ -158,17 +158,17 @@ const FALL_PITCHING_ADV = {
   ],
 };
 
-// Whole pitching staff from GameChanger's team Stats page (official games only, no
-// scrimmages). Teammates are anonymous on purpose — this page is public. Lettered
-// by innings pitched. ERA, WHIP, K% etc. are computed on the page from these counts.
+// Whole pitching staff from GameChanger's team Stats → Pitching (standard) page,
+// official games only (no scrimmages). Ordered by innings pitched; self:true marks
+// Zoe's row. ERA, WHIP, K% etc. are computed on the page from these counts.
 const FALL_STAFF_PITCHING = {
   pitchers: [
-    { name:"Pitcher A",             ip:27.2, gp:8, gs:5, bf:153, pitches:379, w:3, l:0, sv:2, h:65, r:42, er:34, bb:3,  k:16, hbp:0, baa:.436 },
-    { name:"Zoe",       self:true,  ip:22.1, gp:6, gs:3, bf:111, pitches:393, w:2, l:0, sv:0, h:29, r:20, er:20, bb:18, k:32, hbp:1, baa:.319 },
-    { name:"Pitcher B",             ip:20.0, gp:7, gs:6, bf:122, pitches:364, w:2, l:1, sv:0, h:41, r:41, er:24, bb:13, k:16, hbp:3, baa:.390 },
-    { name:"Pitcher C",             ip:5.0,  gp:3, gs:1, bf:35,  pitches:119, w:0, l:0, sv:1, h:12, r:13, er:9,  bb:9,  k:1,  hbp:1, baa:.480 },
-    { name:"Pitcher D",             ip:4.0,  gp:2, gs:1, bf:15,  pitches:49,  w:0, l:0, sv:0, h:4,  r:2,  er:2,  bb:0,  k:5,  hbp:0, baa:.267 },
-    { name:"Pitcher E",             ip:2.2,  gp:2, gs:1, bf:26,  pitches:117, w:1, l:0, sv:0, h:5,  r:13, er:9,  bb:11, k:5,  hbp:2, baa:.385 },
+    { name:"K Mendoza",    number:10,             ip:27.2, gp:8, gs:5, bf:153, pitches:379, w:3, l:0, sv:2, h:65, r:42, er:34, bb:3,  k:16, hbp:0, baa:.436 },
+    { name:"Z Derocher",   number:12, self:true,  ip:22.1, gp:6, gs:3, bf:111, pitches:393, w:2, l:0, sv:0, h:29, r:20, er:20, bb:18, k:32, hbp:1, baa:.319 },
+    { name:"J Wilde",      number:5,              ip:20.0, gp:7, gs:6, bf:122, pitches:364, w:2, l:1, sv:0, h:41, r:41, er:24, bb:13, k:16, hbp:3, baa:.390 },
+    { name:"E Throne",     number:4,              ip:5.0,  gp:3, gs:1, bf:35,  pitches:119, w:0, l:0, sv:1, h:12, r:13, er:9,  bb:9,  k:1,  hbp:1, baa:.480 },
+    { name:"A Weathers",   number:8,              ip:4.0,  gp:2, gs:1, bf:15,  pitches:49,  w:0, l:0, sv:0, h:4,  r:2,  er:2,  bb:0,  k:5,  hbp:0, baa:.267 },
+    { name:"Q Ringenberg", number:45,             ip:2.2,  gp:2, gs:1, bf:26,  pitches:117, w:1, l:0, sv:0, h:5,  r:13, er:9,  bb:11, k:5,  hbp:2, baa:.385 },
   ],
   team: { name:"Team", ip:82.1, gp:18, gs:18, bf:464, pitches:1431, w:8, l:1, sv:3, h:156, r:132, er:98, bb:54, k:77, hbp:7, baa:.390 },
 };
