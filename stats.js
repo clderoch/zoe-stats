@@ -160,17 +160,17 @@ const FALL_PITCHING_ADV = {
 
 // GameChanger team Stats → "Pitching - standard", copied as shown. Includes scrimmages.
 // name is shown with the jersey number; self:true marks Zoe's row.
-//   so SO · kl K-L (strikeouts looking) · hbp HBP · era ERA · whip WHIP
+//   so SO · kl K-L (strikeouts looking) · hbp HBP · era ERA · whip WHIP · svp SV% · h hits allowed · r runs allowed · er earned runs
 const FALL_PITCHING_TEAM = {
   pitchers: [
-    { name:"K Mendoza", number:10, so:19, kl:6,  hbp:1, era:9.000, whip:2.83 },
-    { name:"Z Derocher", number:12, so:33, kl:19, hbp:1, era:5.143, whip:2.05, self:true },
-    { name:"J Wilde", number:5,  so:17, kl:8,  hbp:3, era:7.258, whip:2.90 },
-    { name:"E Throne", number:4,  so:1,  kl:1,  hbp:1, era:11.65, whip:4.41 },
-    { name:"A Weathers", number:8,  so:5,  kl:2,  hbp:0, era:3.000, whip:1.00 },
-    { name:"Q Ringe...erg", number:45, so:5,  kl:4,  hbp:2, era:20.25, whip:6.00 },
+    { name:"K Mendoza", number:10, so:19, kl:6,  hbp:1, era:9.000, whip:2.83, svp:100.0, h:81, r:54, er:46 },
+    { name:"Z Derocher", number:12, so:33, kl:19, hbp:1, era:5.143, whip:2.05, svp:0.0, h:30, r:20, er:20, self:true },
+    { name:"J Wilde", number:5,  so:17, kl:8,  hbp:3, era:7.258, whip:2.90, svp:0.0, h:47, r:46, er:25 },
+    { name:"E Throne", number:4,  so:1,  kl:1,  hbp:1, era:11.65, whip:4.41, svp:100.0, h:15, r:18, er:11 },
+    { name:"A Weathers", number:8,  so:5,  kl:2,  hbp:0, era:3.000, whip:1.00, svp:0.0, h:4, r:2, er:2 },
+    { name:"Q Ringe...erg", number:45, so:5,  kl:4,  hbp:2, era:20.25, whip:6.00, svp:0.0, h:5, r:13, er:9 },
   ],
-  team: { so:80, kl:40, hbp:8, era:7.793, whip:2.75 },
+  team: { so:80, kl:40, hbp:8, era:7.793, whip:2.75, svp:100.0, h:182, r:153, er:113 },
 };
 
 // innings = regulation game length used for ERA; 6 for both seasons to match GameChanger
