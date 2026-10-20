@@ -782,7 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = `${r.name}, #${r.number}`;
         const cls = r.self ? ' class="td-gold"' : '';
         const hi = (k, lowerBetter) => (lowerBetter ? r[k] === lowest(k) : r[k] === best(k)) ? ' class="td-teal"' : '';
-        return `<tr><td${cls}>${i+1}</td><td${cls}>${name}</td><td${hi('so')}>${r.so}</td><td${hi('kl')}>${r.kl}</td><td>${r.hbp}</td><td${hi('era',true)}>${fmt2(r.era)}</td><td${hi('whip',true)}>${fmt2(r.whip)}</td></tr>`;
+        return `<tr><td${cls}>${i+1}</td><td${cls}>${name}</td><td${hi('so')}>${r.so}</td><td${hi('kl')}>${r.kl}</td><td>${r.hbp}</td><td${hi('era',true)}>${fmt2(r.era)}</td><td${hi('whip',true)}>${fmt2(r.whip)}</td><td>${fmt1(r.svp)}</td><td${hi('h',true)}>${r.h}</td><td${hi('r',true)}>${r.r}</td><td${hi('er',true)}>${r.er}</td></tr>`;
       }).join('');
       const t = tp.team;
       document.getElementById('team-cmp-tfoot').innerHTML =
