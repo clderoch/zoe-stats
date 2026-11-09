@@ -346,6 +346,7 @@
       <hr class="divider">
       <div class="section-label teal">GameChanger Advanced</div>
       <div class="section-title">Pitch-by-Pitch Breakdown</div>
+      <div class="adv-note" id="gc-adv-stale-note" hidden></div>
       <div class="adv-note" id="gc-adv-scrim-note" hidden>These season numbers still include the scrimmage. GameChanger only shows its advanced pitching totals with scrimmages counted, so they can't be recalculated here.</div>
       <div id="gc-adv-groups"></div>
 
@@ -870,6 +871,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const filtering = gameFilter === 'official' && adv.games.some(g => g.scrim);
       const totals = filtering && adv.officialTotals ? adv.officialTotals : adv.totals;
       document.getElementById('gc-adv-scrim-note').hidden = !(filtering && !adv.officialTotals);
+      // Say so when outings in the pitching log aren't in the GameChanger Advanced data yet
+      const advKeys = new Set(adv.games.map(g => g.date + '|' + g.opponent));
+      const missing = PITCHING.filter(g => !advKeys.has(g.date + '|' + g.opponent));
+      const staleNote = document.getElementById('gc-adv-stale-note');
+      staleNote.hidden = !missing.length;
+      if (missing.length) {
+        const md = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        staleNote.textContent = `These advanced numbers only go through ${md(adv.games[adv.games.length-1].date)}. `
+          + `${missing.length === 1 ? 'Her outing' : `Her ${missing.length} outings`} on ${missing.map(g => md(g.date)).join(', ')} `
+          + `${missing.length === 1 ? 'isn\'t' : 'aren\'t'} included yet, so these totals won't match the game log above.`;
+      }
       const groups = document.getElementById('gc-adv-groups');
       GC_ADV_GROUPS.forEach(grp => {
         groups.innerHTML += `<div class="adv-group-title">${grp.title}</div><div class="advanced-grid">${
@@ -896,7 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ds = new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
       pBody.innerHTML+=`<tr>
         <td>${ds}</td><td>${g.opponent}</td>
-        <td>${g.ip}</td>
+        <td>${dToIP(ipd)}</td>
         <td>${g.gs?'✓':''}</td>
         <td>${g.bf}</td><td>${g.pitches}</td>
         <td class="${g.w?'td-teal':''}">${g.w||''}</td>
