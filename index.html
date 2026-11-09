@@ -320,11 +320,11 @@
       <hr class="divider">
       <div class="section-label teal">Staff Comparison</div>
       <div class="section-title">Zoe vs. the Pitching Staff</div>
-      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table. Each pitcher's innings are listed under her name, because fewer innings means a number can still swing more. When two numbers are closer than normal game-to-game randomness for that many batters or innings, the rank says <em>about even</em> instead of calling one better.</div>
+      <div class="adv-note"><span id="staff-scope"></span> Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table. Each pitcher's innings are listed under her name, because fewer innings means a number can still swing more. When two numbers are closer than normal game-to-game randomness for that many batters or innings, the rank says <em>about even</em> instead of calling one better.</div>
       <div class="advanced-grid" id="staff-ranks"></div>
       <div class="staff-grid" id="staff-charts"></div>
       <div id="staff-adv">
-        <div class="adv-group-title">How She Pitches · GameChanger Advanced</div>
+        <div class="adv-group-title">How She Pitches · GameChanger Advanced<span id="staff-adv-scope"></span></div>
         <div class="advanced-grid" id="staff-adv-ranks"></div>
         <div class="staff-grid" id="staff-adv-charts"></div>
       </div>
@@ -773,7 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pag.innerHTML+=`<div class="adv-card${c.cls?' '+c.cls:''}"><div class="adv-card-value">${c.val}</div><div class="adv-card-label">${c.label}</div><div class="adv-card-desc">${c.desc}</div></div>`;
     });
 
-    // STAFF COMPARISON (whole team, official games; independent of the scrimmage filter)
+    // STAFF COMPARISON (whole team; follows the All Games / No Scrimmages filter where data allows)
     const staff = season.staffPitching;
     document.getElementById('staff-section').hidden = !staff;
     if (staff) {
@@ -788,9 +788,37 @@ document.addEventListener('DOMContentLoaded', () => {
           wpi:  ipd>0 && r.wp!==undefined ? r.wp/ipd : null,
           csp:  r.cs+r.sb>0 ? r.cs/(r.cs+r.sb) : null };
       };
-      const rows = staff.pitchers.map(withRates), team = withRates(staff.team);
-      const me = rows.find(r => r.self);
-      const qualified = rows.filter(r => r.ipd >= 10);
+      // All Games: use each pitcher's player-page totals (with scrimmages) when we have them,
+      // and add those scrimmage extras to the team-page Team row. No Scrimmages: team page as-is.
+      const COUNT_KEYS = ['gp','gs','bf','pitches','w','l','sv','h','r','er','bb','k','kl','hbp','wp','cs','sb'];
+      const ipFromD = d => { const outs = Math.round(d*3); return Math.floor(outs/3) + (outs%3)/10; };
+      function buildStaff(useAll) {
+        const picked = staff.pitchers.map(p => useAll && p.all ? { ...p, ...p.all } : p);
+        let teamRaw = staff.team;
+        if (useAll) {
+          teamRaw = { ...staff.team };
+          let ipd = ipToD(staff.team.ip), ab = staff.team.h / staff.team.baa;
+          staff.pitchers.filter(p => p.all).forEach(p => {
+            COUNT_KEYS.forEach(k => { teamRaw[k] += p.all[k] - p[k]; });
+            ipd += ipToD(p.all.ip) - ipToD(p.ip);
+            ab  += p.all.h / p.all.baa - p.h / p.baa;   // at bats against, recovered from H ÷ BAA
+          });
+          teamRaw.ip = ipFromD(ipd);
+          teamRaw.baa = teamRaw.h / ab;
+        }
+        const rows = picked.map(withRates);
+        const me = rows.find(r => r.self);
+        return { rows, team: withRates(teamRaw), me, qualified: rows.filter(r => r.ipd >= 10) };
+      }
+      const useAll = gameFilter === 'all';
+      const main = buildStaff(useAll);
+      const official = useAll ? buildStaff(false) : main;  // "How she pitches" is team-page (official) data
+      const noScrimData = staff.pitchers.filter(p => !p.all).map(p => p.name);
+      document.getElementById('staff-scope').innerHTML = useAll
+        ? `All games, including scrimmages: ${staff.pitchers.filter(p => p.all).map(p => p.name).join(', ')} use their own GameChanger player-page totals, and the Team row adds in their scrimmage innings.`
+          + (noScrimData.length ? ` ${noScrimData.join(', ')} still show team-page numbers (scrimmages not included) until their player pages are added.` : '')
+        : `Official games only (scrimmages left out), from GameChanger's team Stats page.`;
+      document.getElementById('staff-adv-scope').textContent = useAll ? ' · official games only' : '';
       const ord = n => n + ((n%100>10 && n%100<14) ? 'th' : (['th','st','nd','rd'][n%10] || 'th'));
 
       // "About even": two pitchers' numbers are treated as tied when the gap is within normal
@@ -801,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const pctSE = (key, n) => r => pSE(r[key]/100, n(r)) * 100;  // GameChanger 0–100 percentages
       const aboutEven = (m, a, b) => !!m.se && Math.abs(a[m.key]-b[m.key]) <= Math.hypot(m.se(a), m.se(b));
       const better = (m, a, b) => m.low ? a[m.key] < b[m.key] : a[m.key] > b[m.key];
-      function rankText(m) {
+      function rankText(m, { me, qualified }) {
         const others = qualified.filter(r => !r.self);
         const evens = others.filter(r => aboutEven(m, r, me));
         const rank = 1 + others.filter(r => !evens.includes(r) && better(m, r, me)).length;
@@ -831,10 +859,11 @@ document.addEventListener('DOMContentLoaded', () => {
         {key:'csp',  label:'CS%',   fmt:fmtPct,     low:false, chart:true, se:r => pSE(r.csp, r.cs+r.sb)},
       ];
 
-      function renderStaffGroup(metrics, ranksId, chartsId) {
+      function renderStaffGroup(metrics, ctx, ranksId, chartsId) {
+        const { rows, team, me } = ctx;
         // Rank tiles: Zoe's number, her rank among 10+ IP pitchers, and the team's number
         document.getElementById(ranksId).innerHTML = metrics.map(m =>
-          `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${rankText(m)} · Team ${m.fmt(team[m.key])}${
+          `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${rankText(m, ctx)} · Team ${m.fmt(team[m.key])}${
             m.share ? ` · ${Math.round(me[m.key]/team[m.key]*100)}% of team` : ''}</div></div>`).join('');
 
         // One small bar chart per stat, best to worst, Zoe highlighted
@@ -849,12 +878,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }</div></div>`;
         }).join('');
       }
-      renderStaffGroup(STAFF_METRICS, 'staff-ranks', 'staff-charts');
+      renderStaffGroup(STAFF_METRICS, main, 'staff-ranks', 'staff-charts');
       const hasStaffAdv = staff.pitchers.every(p => p.adv) && staff.team.adv;
       document.getElementById('staff-adv').hidden = !hasStaffAdv;
-      if (hasStaffAdv) renderStaffGroup(STAFF_ADV_METRICS, 'staff-adv-ranks', 'staff-adv-charts');
+      if (hasStaffAdv) renderStaffGroup(STAFF_ADV_METRICS, official, 'staff-adv-ranks', 'staff-adv-charts');
 
       // Full table, ordered by innings
+      const { rows, team } = main;
       const staffRow = r => `<td>${dToIP(r.ipd)}</td><td>${r.gp}</td><td>${r.gs}</td><td>${r.bf}</td><td>${r.pitches}</td>
         <td>${r.w}</td><td>${r.l}</td><td>${r.sv}</td><td>${r.h}</td><td>${r.r}</td><td>${r.er}</td><td>${r.bb}</td><td>${r.k}</td>
         <td>${fmt2(r.era)}</td><td>${fmt2(r.whip)}</td><td>${fmtPct(r.kpct)}</td><td>${fmtPct(r.bbpct)}</td><td>${fmt3(r.baa)}</td><td>${r.ppi.toFixed(1)}</td>`;

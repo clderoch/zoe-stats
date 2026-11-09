@@ -178,14 +178,19 @@ const FALL_PITCHING_ADV = {
 // official games only (no scrimmages). Ordered by innings pitched; self:true marks
 // Zoe's row. ERA, WHIP, K% etc. are computed on the page from these counts.
 // kl, wp, cs, sb also come from Pitching → Standard; adv is the Pitching → Advanced
-// row (same keys as FALL_PITCHING_ADV above).
+// row (same keys as FALL_PITCHING_ADV above). all (optional) is the pitcher's own
+// player-page Pitching → Standard totals, which include scrimmages; the page uses it
+// when "All Games" is selected.
 const FALL_STAFF_PITCHING = {
   pitchers: [
     { name:"K Mendoza",    number:10,             ip:50.0, gp:17, gs:11, bf:300, pitches:796, w:5, l:4, sv:2, h:132, r:96, er:78, bb:11, k:37, kl:8,  hbp:0, wp:13, cs:1, sb:31, baa:.458,
+      all:{ ip:53.0, gp:19, gs:13, bf:327, pitches:890, w:5, l:4, sv:2, h:148, r:108, er:90, bb:14, k:40, kl:9,  hbp:1, wp:14, cs:3, sb:40, baa:.477 },
       adv:{ lt3:71.00, loo:30, first2out:18, inn123:10, lt13:23, fip:2.576, s:74.75, fps:74.67, fpso:51.34, fpsw:1.79,  fpsh:45.09, bbinn:.220,  zerobbinn:40, bbs:4, lobb:0, lobbs:0, sm:16.33, kbf:.123, kbb:3.364, weak:80.48, hhb:19.52, goao:1.882, hr:0, ld:9.96,  fb:22.31, gb:66.39, babip:.526, barisp:.497 } },
     { name:"J Wilde",      number:5,              ip:37.1, gp:14, gs:10, bf:220, pitches:701, w:5, l:2, sv:0, h:72,  r:68, er:51, bb:28, k:33, kl:17, hbp:5, wp:11, cs:3, sb:37, baa:.389,
+      all:{ ip:38.0, gp:15, gs:10, bf:229, pitches:739, w:5, l:3, sv:0, h:78,  r:73,  er:52, bb:28, k:34, kl:18, hbp:5, wp:12, cs:3, sb:38, baa:.402 },  // gp = 14 + one Sep 18 scrimmage
       adv:{ lt3:57.27, loo:15, first2out:7,  inn123:1,  lt13:9,  fip:3.719, s:61.48, fps:65.45, fpso:51.39, fpsw:7.64,  fpsh:37.50, bbinn:.750,  zerobbinn:15, bbs:9, lobb:6, lobbs:2, sm:11.98, kbf:.150, kbb:1.179, weak:77.78, hhb:22.22, goao:1.720, hr:1, ld:10.46, fb:29.41, gb:58.22, babip:.470, barisp:.354 } },
     { name:"Z Derocher",   number:12, self:true,  ip:28.1, gp:8,  gs:4,  bf:140, pitches:497, w:2, l:1, sv:1, h:41,  r:27, er:27, bb:19, k:40, kl:25, hbp:1, wp:2,  cs:4, sb:28, baa:.345,
+      all:{ ip:29.1, gp:9,  gs:4,  bf:143, pitches:508, w:2, l:1, sv:1, h:42,  r:27,  er:27, bb:19, k:41, kl:26, hbp:1, wp:2,  cs:5, sb:28, baa:.344 },
       adv:{ lt3:48.57, loo:17, first2out:8,  inn123:5,  lt13:9,  fip:2.766, s:60.56, fps:58.57, fpso:56.10, fpsw:7.32,  fpsh:35.37, bbinn:.671,  zerobbinn:15, bbs:5, lobb:3, lobbs:2, sm:11.87, kbf:.286, kbb:2.105, weak:78.48, hhb:21.52, goao:.750,  hr:1, ld:13.92, fb:40.51, gb:43.42, babip:.513, barisp:.392 } },
     { name:"A Weathers",   number:8,              ip:7.0,  gp:3,  gs:2,  bf:32,  pitches:110, w:1, l:0, sv:0, h:10,  r:8,  er:8,  bb:3,  k:8,  kl:4,  hbp:1, wp:0,  cs:2, sb:10, baa:.357,
       adv:{ lt3:37.50, loo:6,  first2out:3,  inn123:2,  lt13:3,  fip:2.374, s:66.36, fps:68.75, fpso:63.64, fpsw:0.00,  fpsh:36.36, bbinn:.429,  zerobbinn:6,  bbs:3, lobb:0, lobbs:0, sm:14.55, kbf:.250, kbb:2.667, weak:95.00, hhb:5.00,  goao:4.000, hr:0, ld:0.00,  fb:25.00, gb:75.00, babip:.500, barisp:.500 } },
