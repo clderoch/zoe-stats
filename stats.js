@@ -182,6 +182,28 @@ const FALL_PITCHING_ADV = {
 const FALL_STAFF_PITCHING = {
   pitchers: [
     { name:"K Mendoza",    number:10,             ip:50.0, gp:17, gs:11, bf:300, pitches:796, w:5, l:4, sv:2, h:132, r:96, er:78, bb:11, k:37, kl:8,  hbp:0, wp:13, cs:1, sb:31, baa:.458,
+      // Her player page → Pitching → Standard (includes 2 scrimmages; same fields as FALL_PITCHING)
+      games: [
+        { date:"2026-09-18", opponent:"Idaho Show Black 12U (Scrim)",  scrim:true, ip:1.0, gs:1, bf:7,  pitches:16, w:0, l:0, sv:0, h_allowed:4,  r_allowed:3,  er:3,  bb_p:0, k:0, hbp_p:1, lob:1, cs_p:1, sb_p:0, wp:1 },
+        { date:"2026-09-27", opponent:"Idaho Reign-12U Noell",                     ip:2.2, gs:0, bf:17, pitches:41, w:0, l:0, sv:0, h_allowed:6,  r_allowed:6,  er:3,  bb_p:1, k:2, hbp_p:0, lob:1, cs_p:0, sb_p:1, wp:1 },
+        { date:"2026-09-30", opponent:"Idaho Show Orange 12U (Scrim)", scrim:true, ip:2.0, gs:1, bf:20, pitches:78, w:0, l:0, sv:0, h_allowed:12, r_allowed:9,  er:9,  bb_p:3, k:3, hbp_p:0, lob:4, cs_p:1, sb_p:9, wp:0 },
+        { date:"2026-10-03", opponent:"12u Rural 208",                             ip:2.0, gs:1, bf:12, pitches:34, w:1, l:0, sv:0, h_allowed:5,  r_allowed:3,  er:3,  bb_p:1, k:2, hbp_p:0, lob:3, cs_p:0, sb_p:1, wp:0 },
+        { date:"2026-10-03", opponent:"12u Rural 208 (2)",                         ip:1.0, gs:0, bf:4,  pitches:8,  w:0, l:0, sv:1, h_allowed:1,  r_allowed:0,  er:0,  bb_p:0, k:0, hbp_p:0, lob:1, cs_p:0, sb_p:0, wp:0 },
+        { date:"2026-10-03", opponent:"Blacksheep - Fletcher",                     ip:4.0, gs:1, bf:19, pitches:67, w:1, l:0, sv:0, h_allowed:9,  r_allowed:4,  er:4,  bb_p:0, k:4, hbp_p:0, lob:3, cs_p:1, sb_p:3, wp:1 },
+        { date:"2026-10-04", opponent:"Blacksheep - Fletcher",                     ip:5.0, gs:0, bf:21, pitches:48, w:0, l:0, sv:1, h_allowed:6,  r_allowed:3,  er:3,  bb_p:0, k:2, hbp_p:0, lob:3, cs_p:0, sb_p:2, wp:0 },
+        { date:"2026-10-10", opponent:"Idaho Show 12U Teal",                       ip:4.0, gs:1, bf:29, pitches:63, w:0, l:0, sv:0, h_allowed:17, r_allowed:12, er:12, bb_p:1, k:1, hbp_p:0, lob:5, cs_p:0, sb_p:5, wp:3 },
+        { date:"2026-10-16", opponent:"Blast- Cox 12U",                            ip:4.0, gs:1, bf:22, pitches:57, w:0, l:0, sv:0, h_allowed:8,  r_allowed:7,  er:5,  bb_p:0, k:2, hbp_p:0, lob:3, cs_p:0, sb_p:2, wp:2 },
+        { date:"2026-10-18", opponent:"Idaho Rampage 12u Denton",                  ip:5.0, gs:1, bf:29, pitches:61, w:1, l:0, sv:0, h_allowed:13, r_allowed:7,  er:4,  bb_p:0, k:3, hbp_p:0, lob:7, cs_p:0, sb_p:2, wp:0 },
+        { date:"2026-10-24", opponent:"Batbusters Davis/Robertson",                ip:2.0, gs:0, bf:18, pitches:48, w:0, l:0, sv:0, h_allowed:13, r_allowed:10, er:10, bb_p:0, k:1, hbp_p:0, lob:2, cs_p:0, sb_p:3, wp:1 },
+        { date:"2026-10-24", opponent:"White Pine Dirt Divas 12U",                 ip:3.0, gs:1, bf:10, pitches:38, w:1, l:0, sv:0, h_allowed:0,  r_allowed:0,  er:0,  bb_p:1, k:6, hbp_p:0, lob:1, cs_p:0, sb_p:1, wp:0 },
+        { date:"2026-10-24", opponent:"Boise Blast Crespin 12U",                   ip:1.2, gs:1, bf:20, pitches:57, w:0, l:1, sv:0, h_allowed:13, r_allowed:11, er:11, bb_p:2, k:1, hbp_p:0, lob:1, cs_p:0, sb_p:2, wp:0 },
+        { date:"2026-10-24", opponent:"Blacksheep - Fletcher",                     ip:4.0, gs:1, bf:18, pitches:38, w:1, l:0, sv:0, h_allowed:6,  r_allowed:3,  er:1,  bb_p:0, k:1, hbp_p:0, lob:3, cs_p:0, sb_p:3, wp:0 },
+        { date:"2026-10-25", opponent:"Blast- Cox 12U",                            ip:4.2, gs:1, bf:25, pitches:77, w:0, l:0, sv:0, h_allowed:7,  r_allowed:5,  er:4,  bb_p:3, k:5, hbp_p:0, lob:6, cs_p:0, sb_p:5, wp:1 },
+        { date:"2026-10-25", opponent:"Boise Blast Crespin 12U",                   ip:1.0, gs:0, bf:8,  pitches:19, w:0, l:0, sv:0, h_allowed:5,  r_allowed:2,  er:2,  bb_p:0, k:1, hbp_p:0, lob:2, cs_p:0, sb_p:0, wp:0 },
+        { date:"2026-11-06", opponent:"SU Valkyries 12U",                          ip:2.1, gs:1, bf:23, pitches:76, w:0, l:1, sv:0, h_allowed:14, r_allowed:12, er:11, bb_p:1, k:3, hbp_p:0, lob:3, cs_p:0, sb_p:1, wp:2 },
+        { date:"2026-11-07", opponent:"Utah Summit 12u",                           ip:1.2, gs:0, bf:9,  pitches:22, w:0, l:1, sv:0, h_allowed:2,  r_allowed:2,  er:0,  bb_p:0, k:1, hbp_p:0, lob:1, cs_p:0, sb_p:0, wp:2 },
+        { date:"2026-11-07", opponent:"Nation softball 12U",                       ip:2.0, gs:1, bf:16, pitches:42, w:0, l:1, sv:0, h_allowed:7,  r_allowed:9,  er:5,  bb_p:1, k:2, hbp_p:0, lob:1, cs_p:0, sb_p:0, wp:0 },
+      ],
       adv:{ lt3:71.00, loo:30, first2out:18, inn123:10, lt13:23, fip:2.576, s:74.75, fps:74.67, fpso:51.34, fpsw:1.79,  fpsh:45.09, bbinn:.220,  zerobbinn:40, bbs:4, lobb:0, lobbs:0, sm:16.33, kbf:.123, kbb:3.364, weak:80.48, hhb:19.52, goao:1.882, hr:0, ld:9.96,  fb:22.31, gb:66.39, babip:.526, barisp:.497 } },
     { name:"J Wilde",      number:5,              ip:37.1, gp:14, gs:10, bf:220, pitches:701, w:5, l:2, sv:0, h:72,  r:68, er:51, bb:28, k:33, kl:17, hbp:5, wp:11, cs:3, sb:37, baa:.389,
       adv:{ lt3:57.27, loo:15, first2out:7,  inn123:1,  lt13:9,  fip:3.719, s:61.48, fps:65.45, fpso:51.39, fpsw:7.64,  fpsh:37.50, bbinn:.750,  zerobbinn:15, bbs:9, lobb:6, lobbs:2, sm:11.98, kbf:.150, kbb:1.179, weak:77.78, hhb:22.22, goao:1.720, hr:1, ld:10.46, fb:29.41, gb:58.22, babip:.470, barisp:.354 } },

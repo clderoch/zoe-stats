@@ -157,6 +157,10 @@
     .staff-val { font-family:'Barlow Condensed',sans-serif; font-size:.85rem; font-weight:700; color:var(--slate); text-align:right; }
     .staff-row.self .staff-val { color:var(--white); }
     #staff-tbody tr.self td { color:var(--gold); font-weight:700; }
+    .peer-log { margin-bottom:1rem; }
+    .peer-log summary { cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--slate); padding:.5rem 0; }
+    .peer-log summary:hover { color:var(--white); }
+    .peer-log .table-wrap { margin:.5rem 0 1rem; }
 
     .adv-group-title { font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); margin-bottom:.75rem; }
     .table-note { font-size:.7rem; color:var(--slate); margin:-1.75rem 0 2.5rem; }
@@ -328,6 +332,17 @@
         <div class="advanced-grid" id="staff-adv-ranks"></div>
         <div class="staff-grid" id="staff-adv-charts"></div>
       </div>
+      <div id="staff-trend">
+        <div class="adv-group-title">Season Trend · Running Totals by Date</div>
+        <div class="adv-note">Each line is a pitcher's season-to-date number after every date she pitched (official games only), so you can see who is trending up or down. Teammates show up here once their GameChanger game logs are added. Missing so far: <span id="staff-trend-missing"></span>.</div>
+        <div class="chart-grid">
+          <div class="chart-card"><div class="chart-title">Running ERA · lower is better</div><canvas id="trendEra" height="220"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Running WHIP · lower is better</div><canvas id="trendWhip" height="220"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Running K% · higher is better</div><canvas id="trendK" height="220"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Running BB% · lower is better</div><canvas id="trendBB" height="220"></canvas></div>
+        </div>
+        <div id="staff-peer-logs"></div>
+      </div>
       <div class="table-wrap">
         <table id="staff-log">
           <thead class="teal-head"><tr>
@@ -416,8 +431,9 @@ function ipToD(ip) {
   return w + o / 3;
 }
 function dToIP(d) {
-  const w = Math.floor(d), o = Math.round((d - w) * 3);
-  return o === 0 ? `${w}.0` : `${w}.${o}`;
+  // Count whole outs first so float sums like 49.9999 show as 50.0, not 49.3
+  const outs = Math.round(d * 3), w = Math.floor(outs / 3), o = outs % 3;
+  return `${w}.${o}`;
 }
 function fmt3(n) {
   if (n===null||isNaN(n)) return '—';
@@ -853,6 +869,69 @@ document.addEventListener('DOMContentLoaded', () => {
       const hasStaffAdv = staff.pitchers.every(p => p.adv) && staff.team.adv;
       document.getElementById('staff-adv').hidden = !hasStaffAdv;
       if (hasStaffAdv) renderStaffGroup(STAFF_ADV_METRICS, 'staff-adv-ranks', 'staff-adv-charts');
+
+      // SEASON TREND: running ERA / WHIP / K% / BB% by date for every pitcher whose game log we have.
+      // Official games only, like the rest of this section. Zoe's log is the season's own pitching log.
+      const logs = staff.pitchers.map(p => ({ ...p,
+        games: (p.self ? season.pitching : (p.games || [])).filter(g => !g.scrim) }));
+      const withLogs = logs.filter(l => l.games.length);
+      document.getElementById('staff-trend').hidden = withLogs.length < 2;
+      if (withLogs.length >= 2) {
+        const missingLogs = logs.filter(l => !l.games.length && ipToD(l.ip) >= 10).map(l => l.name);
+        document.getElementById('staff-trend-missing').textContent = missingLogs.length ? missingLogs.join(', ') : 'none';
+        const dates = [...new Set(withLogs.flatMap(l => l.games.map(g => g.date)))].sort();
+        const md = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        // Season-to-date value at the end of each date she pitched; null on dates she didn't
+        const running = (l, f) => {
+          const c = {ipd:0, er:0, h:0, bb:0, k:0, bf:0}, byDate = {};
+          l.games.forEach(g => {
+            c.ipd += ipToD(g.ip); c.er += g.er; c.h += g.h_allowed; c.bb += g.bb_p; c.k += g.k; c.bf += g.bf;
+            byDate[g.date] = f(c);
+          });
+          return dates.map(d => d in byDate ? byDate[d] : null);
+        };
+        // Color follows the pitcher: Zoe gold, teammates in fixed grays by staff order
+        const PEER_GRAYS = ['#8a9bb0', '#5b6f86', '#a3b8cc', '#46566a'];
+        let peerIdx = 0;
+        const colorOf = Object.fromEntries(logs.map(l => [l.name, l.self ? '#f5c842' : PEER_GRAYS[peerIdx++ % PEER_GRAYS.length]]));
+        const title = t => ({display:true, text:t, color:'#8a9bb0', font:{family:'Inter', size:10}});
+        const trendChart = (id, yLabel, f, fmt) => new Chart(document.getElementById(id), {
+          type:'line',
+          data:{ labels:dates.map(md), datasets:withLogs.map(l => ({
+            label:l.name, data:running(l, f), spanGaps:true,
+            borderColor:colorOf[l.name], backgroundColor:colorOf[l.name],
+            borderWidth:l.self ? 2.5 : 2, pointRadius:3, tension:.3, order:l.self ? 0 : 1 })) },
+          options:{ responsive:true, interaction:{mode:'index', intersect:false},
+            elements:{line:{cubicInterpolationMode:'monotone'}},
+            plugins:{ legend:{labels:{color:'#8a9bb0', font:{family:'Inter', size:11}}},
+              tooltip:{ filter:i => i.parsed.y !== null,
+                callbacks:{ title:items => dates[items[0].dataIndex] && md(dates[items[0].dataIndex]),
+                            label:ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } } },
+            scales:{ x:{title:title('Date'), ticks:{color:'#8a9bb0', font:{size:9}, maxTicksLimit:10}, grid:{color:'#1e2f42'}},
+                     y:{title:title(yLabel), ticks:{color:'#8a9bb0', font:{size:10}, callback:fmt}, grid:{color:'#1e2f42'}} } } });
+        trendChart('trendEra',  'ERA (season-to-date)',  c => c.ipd ? c.er/c.ipd*season.innings : null, fmt2);
+        trendChart('trendWhip', 'WHIP (season-to-date)', c => c.ipd ? (c.h+c.bb)/c.ipd : null,         fmt2);
+        trendChart('trendK',    'K% (season-to-date)',   c => c.bf ? c.k/c.bf : null,                   fmtPct);
+        trendChart('trendBB',   'BB% (season-to-date)',  c => c.bf ? c.bb/c.bf : null,                  fmtPct);
+
+        // Teammates' game logs, collapsed by default
+        document.getElementById('staff-peer-logs').innerHTML = withLogs.filter(l => !l.self).map(l => {
+          const tot = l.games.reduce((a,g) => ({
+            ipd:a.ipd+ipToD(g.ip), bf:a.bf+g.bf, pitches:a.pitches+g.pitches, h:a.h+g.h_allowed, r:a.r+g.r_allowed,
+            er:a.er+g.er, bb:a.bb+g.bb_p, k:a.k+g.k }), {ipd:0,bf:0,pitches:0,h:0,r:0,er:0,bb:0,k:0});
+          tot.era = tot.ipd > 0 ? tot.er/tot.ipd*season.innings : null;
+          const row = (g) => { const ipd = ipToD(g.ip);
+            return `<tr><td>${md(g.date)}</td><td>${g.opponent}</td><td>${dToIP(ipd)}</td><td>${g.bf}</td><td>${g.pitches}</td>
+              <td>${g.h_allowed}</td><td>${g.r_allowed}</td><td>${g.er}</td><td>${g.bb_p}</td><td>${g.k}</td>
+              <td>${ipd>0 ? fmt2(g.er/ipd*season.innings) : '—'}</td></tr>`; };
+          return `<details class="peer-log"><summary>${l.name}, #${l.number} — game log (${l.games.length} official outings)</summary>
+            <div class="table-wrap"><table><thead class="teal-head"><tr><th>Date</th><th>Opponent</th><th>IP</th><th>BF</th><th>P</th>
+            <th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>ERA</th></tr></thead>
+            <tbody>${l.games.map(row).join('')}</tbody>
+            <tfoot class="teal-foot"><tr><td>Season</td><td>Totals</td><td>${dToIP(tot.ipd)}</td><td>${tot.bf}</td><td>${tot.pitches}</td>
+            <td>${tot.h}</td><td>${tot.r}</td><td>${tot.er}</td><td>${tot.bb}</td><td>${tot.k}</td><td>${fmt2(tot.era)}</td></tr></tfoot></table></div></details>`;
+        }).join('');
+      }
 
       // Full table, ordered by innings
       const staffRow = r => `<td>${dToIP(r.ipd)}</td><td>${r.gp}</td><td>${r.gs}</td><td>${r.bf}</td><td>${r.pitches}</td>
