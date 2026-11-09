@@ -149,7 +149,7 @@
     .staff-rows { display:flex; flex-direction:column; gap:.45rem; }
     .staff-row { display:grid; grid-template-columns:118px 1fr 52px; gap:.6rem; align-items:center; }
     .staff-name { font-size:.75rem; color:var(--slate); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .staff-name small { color:var(--muted); font-size:.65rem; }
+    .staff-name small { display:block; color:var(--slate); opacity:.7; font-size:.62rem; font-weight:400; line-height:1.2; }
     .staff-row.self .staff-name { color:var(--white); font-weight:700; }
     .staff-track { height:12px; }
     .staff-bar { height:100%; min-width:2px; border-radius:0 4px 4px 0; background:#5b6f86; }
@@ -320,7 +320,7 @@
       <hr class="divider">
       <div class="section-label teal">Staff Comparison</div>
       <div class="section-title">Zoe vs. the Pitching Staff</div>
-      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table.</div>
+      <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table. Each pitcher's innings are listed under her name, because fewer innings means a number can still swing more. When two numbers are closer than normal game-to-game randomness for that many batters or innings, the rank says <em>about even</em> instead of calling one better.</div>
       <div class="advanced-grid" id="staff-ranks"></div>
       <div class="staff-grid" id="staff-charts"></div>
       <div id="staff-adv">
@@ -791,34 +791,49 @@ document.addEventListener('DOMContentLoaded', () => {
       const me = rows.find(r => r.self);
       const qualified = rows.filter(r => r.ipd >= 10);
       const ord = n => n + ((n%100>10 && n%100<14) ? 'th' : (['th','st','nd','rd'][n%10] || 'th'));
-      const rankOf = m => 1 + qualified.filter(r => m.low ? r[m.key] < me[m.key] : r[m.key] > me[m.key]).length;
+
+      // "About even": two pitchers' numbers are treated as tied when the gap is within normal
+      // randomness (one standard error of the difference) for the batters/pitches/innings behind
+      // each number. se(r) estimates that randomness for one pitcher: binomial for percentages,
+      // Poisson on the underlying count for per-inning stats. Fewer innings → wider margin.
+      const pSE = (p, n) => n > 0 ? Math.sqrt(p*(1-p)/n) : Infinity;
+      const pctSE = (key, n) => r => pSE(r[key]/100, n(r)) * 100;  // GameChanger 0–100 percentages
+      const aboutEven = (m, a, b) => !!m.se && Math.abs(a[m.key]-b[m.key]) <= Math.hypot(m.se(a), m.se(b));
+      const better = (m, a, b) => m.low ? a[m.key] < b[m.key] : a[m.key] > b[m.key];
+      function rankText(m) {
+        const others = qualified.filter(r => !r.self);
+        const evens = others.filter(r => aboutEven(m, r, me));
+        const rank = 1 + others.filter(r => !evens.includes(r) && better(m, r, me)).length;
+        return (evens.length ? `Tied ${ord(rank)}` : ord(rank)) + ` of ${qualified.length} on the staff`
+          + (evens.length ? ` · about even with ${evens.map(r => r.name).join(' & ')}` : '');
+      }
       // share: also show Zoe's share of the team total on the card
       const STAFF_METRICS = [
-        {key:'era',  label:'ERA',  fmt:fmt2,   low:true,  chart:true},
-        {key:'whip', label:'WHIP', fmt:fmt2,   low:true,  chart:true},
-        {key:'kpct', label:'K%',   fmt:fmtPct, low:false, chart:true},
-        {key:'bbpct',label:'BB%',  fmt:fmtPct, low:true,  chart:true},
-        {key:'baa',  label:'BAA',  fmt:fmt3,   low:true,  chart:true},
-        {key:'ppi',  label:'P/IP', fmt:n => n.toFixed(1), low:true, chart:true},
+        {key:'era',  label:'ERA',  fmt:fmt2,   low:true,  chart:true, se:r => Math.sqrt(r.er)/r.ipd*season.innings},
+        {key:'whip', label:'WHIP', fmt:fmt2,   low:true,  chart:true, se:r => Math.sqrt(r.h+r.bb)/r.ipd},
+        {key:'kpct', label:'K%',   fmt:fmtPct, low:false, chart:true, se:r => pSE(r.kpct, r.bf)},
+        {key:'bbpct',label:'BB%',  fmt:fmtPct, low:true,  chart:true, se:r => pSE(r.bbpct, r.bf)},
+        {key:'baa',  label:'BAA',  fmt:fmt3,   low:true,  chart:true, se:r => pSE(r.baa, r.bf-r.bb-r.hbp)},
+        {key:'ppi',  label:'P/IP', fmt:n => n.toFixed(1), low:true, chart:true, se:r => Math.sqrt(r.pitches)/r.ipd},
         {key:'k',    label:'K',    fmt:String, low:false, share:true},
         {key:'ipd',  label:'IP',   fmt:dToIP,  low:false, share:true},
       ];
       // "How she pitches": GameChanger Advanced row, plus wild pitches and caught stealing
       const STAFF_ADV_METRICS = [
-        {key:'s',    label:'S%',    fmt:GC_FMT.pct, low:false, chart:true},
-        {key:'fps',  label:'FPS%',  fmt:GC_FMT.pct, low:false, chart:true},
-        {key:'sm',   label:'SM%',   fmt:GC_FMT.pct, low:false, chart:true},
-        {key:'weak', label:'WEAK%', fmt:GC_FMT.pct, low:false, chart:true},
-        {key:'fip',  label:'FIP',   fmt:fmt2,       low:true,  chart:true},
-        {key:'kbb',  label:'K/BB',  fmt:fmt2,       low:false, chart:true},
-        {key:'wpi',  label:'WP/IP', fmt:fmt2,       low:true,  chart:true},
-        {key:'csp',  label:'CS%',   fmt:fmtPct,     low:false, chart:true},
+        {key:'s',    label:'S%',    fmt:GC_FMT.pct, low:false, chart:true, se:pctSE('s', r => r.pitches)},
+        {key:'fps',  label:'FPS%',  fmt:GC_FMT.pct, low:false, chart:true, se:pctSE('fps', r => r.bf)},
+        {key:'sm',   label:'SM%',   fmt:GC_FMT.pct, low:false, chart:true, se:pctSE('sm', r => r.pitches)},
+        {key:'weak', label:'WEAK%', fmt:GC_FMT.pct, low:false, chart:true, se:pctSE('weak', r => r.bf-r.k-r.bb-r.hbp)},
+        {key:'fip',  label:'FIP',   fmt:fmt2,       low:true,  chart:true, se:r => Math.sqrt(169*r.hr + 9*(r.bb+r.hbp) + 4*r.k)/r.ipd},
+        {key:'kbb',  label:'K/BB',  fmt:fmt2,       low:false, chart:true, se:r => r.bb > 0 ? r.kbb*Math.sqrt(1/r.k + 1/r.bb) : Infinity},
+        {key:'wpi',  label:'WP/IP', fmt:fmt2,       low:true,  chart:true, se:r => Math.sqrt(r.wp)/r.ipd},
+        {key:'csp',  label:'CS%',   fmt:fmtPct,     low:false, chart:true, se:r => pSE(r.csp, r.cs+r.sb)},
       ];
 
       function renderStaffGroup(metrics, ranksId, chartsId) {
         // Rank tiles: Zoe's number, her rank among 10+ IP pitchers, and the team's number
         document.getElementById(ranksId).innerHTML = metrics.map(m =>
-          `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${ord(rankOf(m))} of ${qualified.length} on the staff · Team ${m.fmt(team[m.key])}${
+          `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${rankText(m)} · Team ${m.fmt(team[m.key])}${
             m.share ? ` · ${Math.round(me[m.key]/team[m.key]*100)}% of team` : ''}</div></div>`).join('');
 
         // One small bar chart per stat, best to worst, Zoe highlighted
@@ -827,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const max = Math.max(...rows.map(r => r[m.key])) || 1;
           return `<div class="chart-card"><div class="chart-title">${m.label} · ${m.low ? 'lower' : 'higher'} is better</div><div class="staff-sub">Team: ${m.fmt(team[m.key])}</div><div class="staff-rows">${
             sorted.map(r => `<div class="staff-row${r.self ? ' self' : ''}" title="${r.name} · ${m.label} ${m.fmt(r[m.key])} · ${dToIP(r.ipd)} IP">`
-              + `<span class="staff-name">${r.name}${r.ipd < 10 ? ` <small>(${dToIP(r.ipd)} IP)</small>` : ''}</span>`
+              + `<span class="staff-name">${r.name}<small>${dToIP(r.ipd)} IP</small></span>`
               + `<div class="staff-track"><div class="staff-bar" style="width:${(r[m.key]/max*100).toFixed(1)}%"></div></div>`
               + `<span class="staff-val">${m.fmt(r[m.key])}</span></div>`).join('')
           }</div></div>`;
