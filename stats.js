@@ -175,14 +175,14 @@ const FALL_PITCHING_ADV = {
 // Zoe's row. ERA, WHIP, K% etc. are computed on the page from these counts.
 const FALL_STAFF_PITCHING = {
   pitchers: [
-    { name:"K Mendoza",    number:10,             ip:27.2, gp:8, gs:5, bf:153, pitches:379, w:3, l:0, sv:2, h:65, r:42, er:34, bb:3,  k:16, hbp:0, baa:.436 },
-    { name:"Z Derocher",   number:12, self:true,  ip:22.1, gp:6, gs:3, bf:111, pitches:393, w:2, l:0, sv:0, h:29, r:20, er:20, bb:18, k:32, hbp:1, baa:.319 },
-    { name:"J Wilde",      number:5,              ip:20.0, gp:7, gs:6, bf:122, pitches:364, w:2, l:1, sv:0, h:41, r:41, er:24, bb:13, k:16, hbp:3, baa:.390 },
-    { name:"E Throne",     number:4,              ip:5.0,  gp:3, gs:1, bf:35,  pitches:119, w:0, l:0, sv:1, h:12, r:13, er:9,  bb:9,  k:1,  hbp:1, baa:.480 },
-    { name:"A Weathers",   number:8,              ip:4.0,  gp:2, gs:1, bf:15,  pitches:49,  w:0, l:0, sv:0, h:4,  r:2,  er:2,  bb:0,  k:5,  hbp:0, baa:.267 },
-    { name:"Q Ringenberg", number:45,             ip:2.2,  gp:2, gs:1, bf:26,  pitches:117, w:1, l:0, sv:0, h:5,  r:13, er:9,  bb:11, k:5,  hbp:2, baa:.385 },
+    { name:"K Mendoza",    number:10,             ip:50.0, gp:17, gs:11, bf:300, pitches:796, w:5, l:4, sv:2, h:132, r:96, er:78, bb:11, k:37, hbp:0, baa:.458 },
+    { name:"J Wilde",      number:5,              ip:37.1, gp:14, gs:10, bf:220, pitches:701, w:5, l:2, sv:0, h:72,  r:68, er:51, bb:28, k:33, hbp:5, baa:.389 },
+    { name:"Z Derocher",   number:12, self:true,  ip:28.1, gp:8,  gs:4,  bf:140, pitches:497, w:2, l:1, sv:1, h:41,  r:27, er:27, bb:19, k:40, hbp:1, baa:.345 },
+    { name:"A Weathers",   number:8,              ip:7.0,  gp:3,  gs:2,  bf:32,  pitches:110, w:1, l:0, sv:0, h:10,  r:8,  er:8,  bb:3,  k:8,  hbp:1, baa:.357 },
+    { name:"E Throne",     number:4,              ip:5.0,  gp:3,  gs:1,  bf:35,  pitches:119, w:0, l:0, sv:1, h:12,  r:13, er:9,  bb:9,  k:1,  hbp:1, baa:.480 },
+    { name:"Q Ringenberg", number:45,             ip:2.2,  gp:2,  gs:1,  bf:26,  pitches:117, w:1, l:0, sv:0, h:5,   r:13, er:9,  bb:11, k:5,  hbp:2, baa:.385 },
   ],
-  team: { name:"Team", ip:82.1, gp:18, gs:18, bf:464, pitches:1431, w:8, l:1, sv:3, h:156, r:132, er:98, bb:54, k:77, hbp:7, baa:.390 },
+  team: { name:"Team", ip:131.0, gp:30, gs:30, bf:754, pitches:2350, w:14, l:7, sv:4, h:272, r:226, er:182, bb:81, k:126, hbp:10, baa:.413 },
 };
 
 // innings = regulation game length used for ERA; 6 for both seasons to match GameChanger
