@@ -122,6 +122,18 @@ const FALL_GAMES = [
   { date: "2026-10-17", opponent: "Idaho Show 12U Teal",            pa:3, ab:3, h:1, singles:0, doubles:0, triples:1, hr:0, rbi:2, r:1, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-10-18", opponent: "Idaho Rampage 12u Denton",       pa:3, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
   { date: "2026-10-18", opponent: "Idaho Show Orange 12U",          pa:3, ab:2, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:3, r:1, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-24", opponent: "Batbusters Davis/Robertson",     pa:2, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:1, cs:0 },
+  { date: "2026-10-24", opponent: "Blacksheep - Fletcher",          pa:3, ab:3, h:2, singles:1, doubles:1, triples:0, hr:0, rbi:2, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-24", opponent: "White Pine Dirt Divas 12U",      pa:3, ab:1, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:3, r:2, bb:2, so:0, hbp:0, sac:0, sf:0, roe:0, sb:2, cs:0 },
+  { date: "2026-10-24", opponent: "Boise Blast Crespin 12U",        pa:2, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-24", opponent: "Blacksheep - Fletcher (2)",      pa:3, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-25", opponent: "Blast- Cox 12U",                 pa:5, ab:5, h:3, singles:3, doubles:0, triples:0, hr:0, rbi:1, r:2, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-10-25", opponent: "Boise Blast Crespin 12U",        pa:3, ab:3, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-11-06", opponent: "SU Valkyries 12U",               pa:1, ab:1, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-11-06", opponent: "Idaho Force - Jacobson 12U",     pa:2, ab:1, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:1, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-11-06", opponent: "Utah Hawks 2015 12U",            pa:2, ab:2, h:0, singles:0, doubles:0, triples:0, hr:0, rbi:1, r:0, bb:0, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-11-07", opponent: "Utah Summit 12u",                pa:2, ab:2, h:2, singles:2, doubles:0, triples:0, hr:0, rbi:0, r:0, bb:0, so:0, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
+  { date: "2026-11-07", opponent: "Nation softball 12U",            pa:3, ab:2, h:1, singles:1, doubles:0, triples:0, hr:0, rbi:1, r:1, bb:1, so:1, hbp:0, sac:0, sf:0, roe:0, sb:0, cs:0 },
 ];
 
 const FALL_PITCHING = [
