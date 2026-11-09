@@ -175,16 +175,25 @@ const FALL_PITCHING_ADV = {
 // Whole pitching staff from GameChanger's team Stats → Pitching (standard) page,
 // official games only (no scrimmages). Ordered by innings pitched; self:true marks
 // Zoe's row. ERA, WHIP, K% etc. are computed on the page from these counts.
+// kl, wp, cs, sb also come from Pitching → Standard; adv is the Pitching → Advanced
+// row (same keys as FALL_PITCHING_ADV above).
 const FALL_STAFF_PITCHING = {
   pitchers: [
-    { name:"K Mendoza",    number:10,             ip:50.0, gp:17, gs:11, bf:300, pitches:796, w:5, l:4, sv:2, h:132, r:96, er:78, bb:11, k:37, hbp:0, baa:.458 },
-    { name:"J Wilde",      number:5,              ip:37.1, gp:14, gs:10, bf:220, pitches:701, w:5, l:2, sv:0, h:72,  r:68, er:51, bb:28, k:33, hbp:5, baa:.389 },
-    { name:"Z Derocher",   number:12, self:true,  ip:28.1, gp:8,  gs:4,  bf:140, pitches:497, w:2, l:1, sv:1, h:41,  r:27, er:27, bb:19, k:40, hbp:1, baa:.345 },
-    { name:"A Weathers",   number:8,              ip:7.0,  gp:3,  gs:2,  bf:32,  pitches:110, w:1, l:0, sv:0, h:10,  r:8,  er:8,  bb:3,  k:8,  hbp:1, baa:.357 },
-    { name:"E Throne",     number:4,              ip:5.0,  gp:3,  gs:1,  bf:35,  pitches:119, w:0, l:0, sv:1, h:12,  r:13, er:9,  bb:9,  k:1,  hbp:1, baa:.480 },
-    { name:"Q Ringenberg", number:45,             ip:2.2,  gp:2,  gs:1,  bf:26,  pitches:117, w:1, l:0, sv:0, h:5,   r:13, er:9,  bb:11, k:5,  hbp:2, baa:.385 },
+    { name:"K Mendoza",    number:10,             ip:50.0, gp:17, gs:11, bf:300, pitches:796, w:5, l:4, sv:2, h:132, r:96, er:78, bb:11, k:37, kl:8,  hbp:0, wp:13, cs:1, sb:31, baa:.458,
+      adv:{ lt3:71.00, loo:30, first2out:18, inn123:10, lt13:23, fip:2.576, s:74.75, fps:74.67, fpso:51.34, fpsw:1.79,  fpsh:45.09, bbinn:.220,  zerobbinn:40, bbs:4, lobb:0, lobbs:0, sm:16.33, kbf:.123, kbb:3.364, weak:80.48, hhb:19.52, goao:1.882, hr:0, ld:9.96,  fb:22.31, gb:66.39, babip:.526, barisp:.497 } },
+    { name:"J Wilde",      number:5,              ip:37.1, gp:14, gs:10, bf:220, pitches:701, w:5, l:2, sv:0, h:72,  r:68, er:51, bb:28, k:33, kl:17, hbp:5, wp:11, cs:3, sb:37, baa:.389,
+      adv:{ lt3:57.27, loo:15, first2out:7,  inn123:1,  lt13:9,  fip:3.719, s:61.48, fps:65.45, fpso:51.39, fpsw:7.64,  fpsh:37.50, bbinn:.750,  zerobbinn:15, bbs:9, lobb:6, lobbs:2, sm:11.98, kbf:.150, kbb:1.179, weak:77.78, hhb:22.22, goao:1.720, hr:1, ld:10.46, fb:29.41, gb:58.22, babip:.470, barisp:.354 } },
+    { name:"Z Derocher",   number:12, self:true,  ip:28.1, gp:8,  gs:4,  bf:140, pitches:497, w:2, l:1, sv:1, h:41,  r:27, er:27, bb:19, k:40, kl:25, hbp:1, wp:2,  cs:4, sb:28, baa:.345,
+      adv:{ lt3:48.57, loo:17, first2out:8,  inn123:5,  lt13:9,  fip:2.766, s:60.56, fps:58.57, fpso:56.10, fpsw:7.32,  fpsh:35.37, bbinn:.671,  zerobbinn:15, bbs:5, lobb:3, lobbs:2, sm:11.87, kbf:.286, kbb:2.105, weak:78.48, hhb:21.52, goao:.750,  hr:1, ld:13.92, fb:40.51, gb:43.42, babip:.513, barisp:.392 } },
+    { name:"A Weathers",   number:8,              ip:7.0,  gp:3,  gs:2,  bf:32,  pitches:110, w:1, l:0, sv:0, h:10,  r:8,  er:8,  bb:3,  k:8,  kl:4,  hbp:1, wp:0,  cs:2, sb:10, baa:.357,
+      adv:{ lt3:37.50, loo:6,  first2out:3,  inn123:2,  lt13:3,  fip:2.374, s:66.36, fps:68.75, fpso:63.64, fpsw:0.00,  fpsh:36.36, bbinn:.429,  zerobbinn:6,  bbs:3, lobb:0, lobbs:0, sm:14.55, kbf:.250, kbb:2.667, weak:95.00, hhb:5.00,  goao:4.000, hr:0, ld:0.00,  fb:25.00, gb:75.00, babip:.500, barisp:.500 } },
+    { name:"E Throne",     number:4,              ip:5.0,  gp:3,  gs:1,  bf:35,  pitches:119, w:0, l:0, sv:1, h:12,  r:13, er:9,  bb:9,  k:1,  kl:1,  hbp:1, wp:0,  cs:1, sb:9,  baa:.480,
+      adv:{ lt3:51.43, loo:1,  first2out:0,  inn123:0,  lt13:0,  fip:6.864, s:44.54, fps:51.43, fpso:38.89, fpsw:16.67, fpsh:33.33, bbinn:1.800, zerobbinn:0,  bbs:4, lobb:1, lobbs:0, sm:5.88,  kbf:.029, kbb:.111,  weak:87.50, hhb:12.50, goao:2.333, hr:0, ld:12.50, fb:33.33, gb:52.17, babip:.500, barisp:.400 } },
+    { name:"Q Ringenberg", number:45,             ip:2.2,  gp:2,  gs:1,  bf:26,  pitches:117, w:1, l:0, sv:0, h:5,   r:13, er:9,  bb:11, k:5,  kl:4,  hbp:2, wp:8,  cs:0, sb:8,  baa:.385,
+      adv:{ lt3:19.23, loo:0,  first2out:0,  inn123:0,  lt13:0,  fip:9.172, s:43.59, fps:50.00, fpso:46.15, fpsw:23.08, fpsh:15.38, bbinn:4.125, zerobbinn:0,  bbs:9, lobb:2, lobbs:2, sm:7.69,  kbf:.192, kbb:.455,  weak:75.00, hhb:25.00, goao:1.000, hr:0, ld:0.00,  fb:12.50, gb:87.50, babip:.625, barisp:.333 } },
   ],
-  team: { name:"Team", ip:131.0, gp:30, gs:30, bf:754, pitches:2350, w:14, l:7, sv:4, h:272, r:226, er:182, bb:81, k:126, hbp:10, baa:.413 },
+  team: { name:"Team", ip:131.0, gp:30, gs:30, bf:754, pitches:2350, w:14, l:7, sv:4, h:272, r:226, er:182, bb:81, k:126, kl:59, hbp:10, wp:34, cs:11, sb:123, baa:.413,
+      adv:{ lt3:58.62, loo:70, first2out:37, inn123:18, lt13:44, fip:3.209, s:64.26, fps:66.84, fpso:52.18, fpsw:5.36,  fpsh:39.68, bbinn:.618,  zerobbinn:76, bbs:34, lobb:12, lobbs:6, sm:13.15, kbf:.167, kbb:1.556, weak:80.19, hhb:19.81, goao:1.624, hr:2, ld:10.28, fb:27.48, gb:60.70, babip:.508, barisp:.429 } },
 };
 
 // innings = regulation game length used for ERA; 6 for both seasons to match GameChanger

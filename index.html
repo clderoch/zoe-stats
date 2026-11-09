@@ -323,6 +323,11 @@
       <div class="adv-note">Official games only (scrimmages left out), from GameChanger's team Stats page. Ranks count pitchers with 10+ innings; pitchers with fewer innings are still shown in the charts and table.</div>
       <div class="advanced-grid" id="staff-ranks"></div>
       <div class="staff-grid" id="staff-charts"></div>
+      <div id="staff-adv">
+        <div class="adv-group-title">How She Pitches · GameChanger Advanced</div>
+        <div class="advanced-grid" id="staff-adv-ranks"></div>
+        <div class="staff-grid" id="staff-adv-charts"></div>
+      </div>
       <div class="table-wrap">
         <table id="staff-log">
           <thead class="teal-head"><tr>
@@ -773,18 +778,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (staff) {
       const withRates = r => {
         const ipd = ipToD(r.ip);
-        return { ...r, ipd,
+        return { ...r, ...(r.adv || {}), ipd,
           era:  ipd>0 ? r.er/ipd*season.innings : 0,
           whip: ipd>0 ? (r.bb+r.h)/ipd : 0,
           kpct: r.bf>0 ? r.k/r.bf : 0,
           bbpct:r.bf>0 ? r.bb/r.bf : 0,
-          ppi:  ipd>0 ? r.pitches/ipd : 0 };
+          ppi:  ipd>0 ? r.pitches/ipd : 0,
+          wpi:  ipd>0 && r.wp!==undefined ? r.wp/ipd : null,
+          csp:  r.cs+r.sb>0 ? r.cs/(r.cs+r.sb) : null };
       };
       const rows = staff.pitchers.map(withRates), team = withRates(staff.team);
       const me = rows.find(r => r.self);
       const qualified = rows.filter(r => r.ipd >= 10);
       const ord = n => n + ((n%100>10 && n%100<14) ? 'th' : (['th','st','nd','rd'][n%10] || 'th'));
       const rankOf = m => 1 + qualified.filter(r => m.low ? r[m.key] < me[m.key] : r[m.key] > me[m.key]).length;
+      // share: also show Zoe's share of the team total on the card
       const STAFF_METRICS = [
         {key:'era',  label:'ERA',  fmt:fmt2,   low:true,  chart:true},
         {key:'whip', label:'WHIP', fmt:fmt2,   low:true,  chart:true},
@@ -792,28 +800,43 @@ document.addEventListener('DOMContentLoaded', () => {
         {key:'bbpct',label:'BB%',  fmt:fmtPct, low:true,  chart:true},
         {key:'baa',  label:'BAA',  fmt:fmt3,   low:true,  chart:true},
         {key:'ppi',  label:'P/IP', fmt:n => n.toFixed(1), low:true, chart:true},
-        {key:'k',    label:'K',    fmt:String, low:false},
-        {key:'ipd',  label:'IP',   fmt:dToIP,  low:false},
+        {key:'k',    label:'K',    fmt:String, low:false, share:true},
+        {key:'ipd',  label:'IP',   fmt:dToIP,  low:false, share:true},
+      ];
+      // "How she pitches": GameChanger Advanced row, plus wild pitches and caught stealing
+      const STAFF_ADV_METRICS = [
+        {key:'s',    label:'S%',    fmt:GC_FMT.pct, low:false, chart:true},
+        {key:'fps',  label:'FPS%',  fmt:GC_FMT.pct, low:false, chart:true},
+        {key:'sm',   label:'SM%',   fmt:GC_FMT.pct, low:false, chart:true},
+        {key:'weak', label:'WEAK%', fmt:GC_FMT.pct, low:false, chart:true},
+        {key:'fip',  label:'FIP',   fmt:fmt2,       low:true,  chart:true},
+        {key:'kbb',  label:'K/BB',  fmt:fmt2,       low:false, chart:true},
+        {key:'wpi',  label:'WP/IP', fmt:fmt2,       low:true,  chart:true},
+        {key:'csp',  label:'CS%',   fmt:fmtPct,     low:false, chart:true},
       ];
 
-      // Rank tiles: Zoe's number, her rank among 10+ IP pitchers, and the team's number
-      const ranks = document.getElementById('staff-ranks');
-      STAFF_METRICS.forEach(m => {
-        ranks.innerHTML += `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${ord(rankOf(m))} of ${qualified.length} on the staff · Team ${m.fmt(team[m.key])}</div></div>`;
-      });
+      function renderStaffGroup(metrics, ranksId, chartsId) {
+        // Rank tiles: Zoe's number, her rank among 10+ IP pitchers, and the team's number
+        document.getElementById(ranksId).innerHTML = metrics.map(m =>
+          `<div class="adv-card teal"><div class="adv-card-value">${m.fmt(me[m.key])}</div><div class="adv-card-label">${m.label}</div><div class="adv-card-desc">${ord(rankOf(m))} of ${qualified.length} on the staff · Team ${m.fmt(team[m.key])}${
+            m.share ? ` · ${Math.round(me[m.key]/team[m.key]*100)}% of team` : ''}</div></div>`).join('');
 
-      // One small bar chart per stat, best to worst, Zoe highlighted
-      const charts = document.getElementById('staff-charts');
-      STAFF_METRICS.filter(m => m.chart).forEach(m => {
-        const sorted = [...rows].sort((a,b) => m.low ? a[m.key]-b[m.key] : b[m.key]-a[m.key]);
-        const max = Math.max(...rows.map(r => r[m.key])) || 1;
-        charts.innerHTML += `<div class="chart-card"><div class="chart-title">${m.label} · ${m.low ? 'lower' : 'higher'} is better</div><div class="staff-sub">Team: ${m.fmt(team[m.key])}</div><div class="staff-rows">${
-          sorted.map(r => `<div class="staff-row${r.self ? ' self' : ''}" title="${r.name} · ${m.label} ${m.fmt(r[m.key])} · ${dToIP(r.ipd)} IP">`
-            + `<span class="staff-name">${r.name}${r.ipd < 10 ? ` <small>(${dToIP(r.ipd)} IP)</small>` : ''}</span>`
-            + `<div class="staff-track"><div class="staff-bar" style="width:${(r[m.key]/max*100).toFixed(1)}%"></div></div>`
-            + `<span class="staff-val">${m.fmt(r[m.key])}</span></div>`).join('')
-        }</div></div>`;
-      });
+        // One small bar chart per stat, best to worst, Zoe highlighted
+        document.getElementById(chartsId).innerHTML = metrics.filter(m => m.chart).map(m => {
+          const sorted = [...rows].sort((a,b) => m.low ? a[m.key]-b[m.key] : b[m.key]-a[m.key]);
+          const max = Math.max(...rows.map(r => r[m.key])) || 1;
+          return `<div class="chart-card"><div class="chart-title">${m.label} · ${m.low ? 'lower' : 'higher'} is better</div><div class="staff-sub">Team: ${m.fmt(team[m.key])}</div><div class="staff-rows">${
+            sorted.map(r => `<div class="staff-row${r.self ? ' self' : ''}" title="${r.name} · ${m.label} ${m.fmt(r[m.key])} · ${dToIP(r.ipd)} IP">`
+              + `<span class="staff-name">${r.name}${r.ipd < 10 ? ` <small>(${dToIP(r.ipd)} IP)</small>` : ''}</span>`
+              + `<div class="staff-track"><div class="staff-bar" style="width:${(r[m.key]/max*100).toFixed(1)}%"></div></div>`
+              + `<span class="staff-val">${m.fmt(r[m.key])}</span></div>`).join('')
+          }</div></div>`;
+        }).join('');
+      }
+      renderStaffGroup(STAFF_METRICS, 'staff-ranks', 'staff-charts');
+      const hasStaffAdv = staff.pitchers.every(p => p.adv) && staff.team.adv;
+      document.getElementById('staff-adv').hidden = !hasStaffAdv;
+      if (hasStaffAdv) renderStaffGroup(STAFF_ADV_METRICS, 'staff-adv-ranks', 'staff-adv-charts');
 
       // Full table, ordered by innings
       const staffRow = r => `<td>${dToIP(r.ipd)}</td><td>${r.gp}</td><td>${r.gs}</td><td>${r.bf}</td><td>${r.pitches}</td>
@@ -1249,6 +1272,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'K/BB':  { name:'Strikeout-to-Walk Ratio', color:'teal',
                plain:'How many batters she struck out for every one she walked. Higher is better: it means she dominates AND has control.',
                example:'💡 Above 2.0 is solid. Above 3.0 is excellent.' },
+    'WP/IP': { name:'Wild Pitches Per Inning', color:'teal',
+               plain:'How many wild pitches Zoe throws in an average inning. A wild pitch gets past the catcher and lets runners move up a base for free.',
+               example:'💡 Lower is better. Fewer wild pitches means runners have to earn every base.' },
+    'CS%':   { name:'Caught Stealing Percentage', color:'teal',
+               plain:'When runners tried to steal while Zoe was pitching, what share were thrown out? A quick delivery and a good pickoff move help her catcher.',
+               example:'💡 Higher is better. Runners steal a lot in youth softball, so every caught stealing is a big out.' },
     BAA:     { name:'Batting Average Against', color:'teal',
                plain:'The other team\'s batting average when Zoe is pitching: hits allowed divided by at bats against her. Lower is better.',
                example:'💡 A BAA under .300 means batters get a hit less than 3 times in 10 at bats against her.' },
