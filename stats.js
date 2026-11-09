@@ -144,6 +144,8 @@ const FALL_PITCHING = [
   { date:"2026-10-11", opponent:"Idaho Reign-12U Noell",        ip:4.1, gs:1, bf:23, pitches:92, w:0, l:0, sv:0, h_allowed:9, r_allowed:7, er:7, bb_p:4, k:5, hbp_p:0, lob:3, bk:0, pik:0, cs_p:0, sb_p:12 },
   { date:"2026-10-17", opponent:"Idaho Rampage 12u Denton",     ip:3.0, gs:1, bf:17, pitches:47, w:0, l:0, sv:0, h_allowed:6, r_allowed:5, er:5, bb_p:3, k:4, hbp_p:0, lob:3, bk:0, pik:0, cs_p:1, sb_p:4 },
   { date:"2026-10-18", opponent:"Idaho Show Orange 12U",        ip:1.0, gs:0, bf:8,  pitches:28, w:0, l:0, sv:0, h_allowed:3, r_allowed:2, er:2, bb_p:2, k:2, hbp_p:0, lob:3, bk:0, pik:0, cs_p:0, sb_p:0 },
+  { date:"2026-10-24", opponent:"Blacksheep - Fletcher",        ip:2.0, gs:0, bf:9,  pitches:37, w:0, l:0, sv:1, h_allowed:3, r_allowed:2, er:2, bb_p:1, k:1, hbp_p:0, lob:1, bk:0, pik:0, cs_p:1, sb_p:3 },
+  { date:"2026-10-25", opponent:"Boise Blast Crespin 12U",      ip:4.0, gs:1, bf:20, pitches:67, w:0, l:1, sv:0, h_allowed:9, r_allowed:5, er:5, bb_p:0, k:7, hbp_p:0, lob:4, bk:0, pik:0, cs_p:1, sb_p:2 },
 ];
 
 // GameChanger "Pitching → Advanced" tab, copied exactly as shown (null = "-").
